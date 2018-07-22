@@ -1,5 +1,6 @@
 import Rollbar from 'rollbar';
 
+// 错误跟踪，后面可以配置
 // Track error by rollbar.com
 if (location.host === 'preview.pro.ant.design') {
   Rollbar.init({

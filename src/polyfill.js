@@ -2,6 +2,7 @@ import '@babel/polyfill';
 import 'url-polyfill';
 import setprototypeof from 'setprototypeof';
 
+// configuration javascript environment 
 // React depends on set/map/requestAnimationFrame
 // https://reactjs.org/docs/javascript-environment-requirements.html
 // import 'core-js/es6/set';
