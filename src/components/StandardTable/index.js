@@ -84,9 +84,10 @@ class StandardTable extends PureComponent {
     const rowSelection = {
       selectedRowKeys,
       onChange: this.handleRowSelectChange,
-      getCheckboxProps: record => ({
+      getCheckboxProps: record => {
+      return {
         disabled: record.disabled,
-      }),
+      }},
     };
 
     return (
@@ -130,69 +131,3 @@ class StandardTable extends PureComponent {
 }
 
 export default StandardTable;
-
-
-
-
-
-const columns = [
-  {
-    title: '规则编号',
-    dataIndex: 'no',
-  },
-  {
-    title: '描述',
-    dataIndex: 'description',
-  },
-  {
-    title: '服务调用次数',
-    dataIndex: 'callNo',
-    sorter: true,
-    align: 'right',
-    render: val => `${val} 万`,
-    // mark to display a total number
-    needTotal: true,
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    filters: [
-      {
-        text: status[0],
-        value: 0,
-      },
-      {
-        text: status[1],
-        value: 1,
-      },
-      {
-        text: status[2],
-        value: 2,
-      },
-      {
-        text: status[3],
-        value: 3,
-      },
-    ],
-    onFilter: (value, record) => record.status.toString() === value,
-    render(val) {
-      return <Badge status={statusMap[val]} text={status[val]} />;
-    },
-  },
-  {
-    title: '更新时间',
-    dataIndex: 'updatedAt',
-    sorter: true,
-    render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
-  },
-  {
-    title: '操作',
-    render: () => (
-      <Fragment>
-        <a href="">配置</a>
-        <Divider type="vertical" />
-        <a href="">订阅警报</a>
-      </Fragment>
-    ),
-  },
-];

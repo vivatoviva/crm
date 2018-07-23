@@ -1,7 +1,8 @@
 import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
+import { routerRedux } from 'dva/router';
 import SourceTable from "components/SourceTable";
-import moment from 'moment';
+import DispatchModal from './DispatchModal'
 import {
   Row,
   Col,
@@ -11,13 +12,10 @@ import {
   Select,
   Icon,
   Button,
-  Dropdown,
-  Menu,
   DatePicker,
-  Modal,
+  Radio,
   message,
-  Badge,
-  Divider,
+  Popconfirm,
 } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './TableList.less';
@@ -25,46 +23,35 @@ import styles from './TableList.less';
 const { RangePicker } = DatePicker;
 const FormItem = Form.Item;
 const { Option } = Select;
+const RadioButton = Radio.Button;
+const RadioGroup = Radio.Group;
+
+
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-const statusMap = ['default', 'processing', 'success', 'error'];
-const status = ['关闭', '运行中', '已上线', '异常'];
 
-const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
-  const okHandle = () => {
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
-    });
-  };
-  return (
-    <Modal
-      title="新建规则"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleModalVisible()}
-    >
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true, message: 'Please input some description...' }],
-        })(<Input placeholder="请输入" />)}
-      </FormItem>
-    </Modal>
-  );
-});
+const initList = data => {
+  const formatData = [];
+  for(const item of data) {
+    formatData.push({
+      ...item,
+      disabled: !!item.person,
+    })
+  }
+  return formatData;
+}
 
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+
+@connect(({ loading, source }) => ({
+  allData: source.allData,
+  loading: loading.models.source,
 }))
 @Form.create()
 export default class TableList extends PureComponent {
   state = {
-    modalVisible: false,
+    visible: false,
     expandForm: false,
     selectedRows: [],
     formValues: {},
@@ -73,8 +60,8 @@ export default class TableList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
-    });
+      type: 'source/fetchList',
+    })
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -98,7 +85,7 @@ export default class TableList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'source/fetchList',
       payload: params,
     });
   };
@@ -110,7 +97,7 @@ export default class TableList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
+      type: 'source/fetchList',
       payload: {},
     });
   };
@@ -122,31 +109,6 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleMenuClick = e => {
-    const { dispatch } = this.props;
-    const { selectedRows } = this.state;
-
-    if (!selectedRows) return;
-
-    switch (e.key) {
-      case 'remove':
-        dispatch({
-          type: 'rule/remove',
-          payload: {
-            no: selectedRows.map(row => row.no).join(','),
-          },
-          callback: () => {
-            this.setState({
-              selectedRows: [],
-            });
-          },
-        });
-        break;
-      default:
-        break;
-    }
-  };
-
   handleSelectRows = rows => {
     this.setState({
       selectedRows: rows,
@@ -155,7 +117,6 @@ export default class TableList extends PureComponent {
 
   handleSearch = e => {
     e.preventDefault();
-
     const { dispatch, form } = this.props;
 
     form.validateFields((err, fieldsValue) => {
@@ -169,36 +130,54 @@ export default class TableList extends PureComponent {
       this.setState({
         formValues: values,
       });
-
       dispatch({
-        type: 'rule/fetch',
+        type: 'source/fetchList',
         payload: values,
       });
     });
   };
 
-  handleModalVisible = () => {
-    this.props.history.push('/resource/add')
+  handleAdd = () => {
+    const { dispatch, match } = this.props;
+    dispatch(routerRedux.push(`${match.url}/add`));
+  }
 
-    // this.setState({
-    //   modalVisible: !!flag,
-    // });
-  };
+  handleDelete = () => {
 
-  handleAdd = fields => {
     const { dispatch } = this.props;
+    const { selectedRows } = this.state;
+    const deleteList = selectedRows.map(item => item.source_id);
+    message.success('删除成功')
     dispatch({
-      type: 'rule/add',
-      payload: {
-        description: fields.desc,
-      },
+      type: 'source/fetchList',
     });
+  }
 
-    message.success('添加成功');
+  handleRadio = e => {
+    const { dispatch } = this.props;
+    const { target: { value }} = e;
+    dispatch({
+      type: 'source/fetchList',
+    })
+  }
+
+  handleModalOk = () => {
     this.setState({
-      modalVisible: false,
-    });
-  };
+      visible: false,
+    })
+  }
+
+  handleModalCancel = () => {
+    this.setState({
+      visible: false,
+    })
+  }
+
+  handleDispatch = () => {
+    this.setState({
+      visible: true,
+    })
+  }
 
   renderSimpleForm() {
     const { form } = this.props;
@@ -298,13 +277,7 @@ export default class TableList extends PureComponent {
           </Col>
           <Col md={16} sm={24}>
             <FormItem label="起止日期">
-              {getFieldDecorator('date', {
-                rules: [
-                  {
-                    message: '请选择起止日期',
-                  },
-                ],
-              })(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
+              {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -332,57 +305,51 @@ export default class TableList extends PureComponent {
 
   render() {
     const {
-      rule: { data },
+      allData,
       loading,
     } = this.props;
-    const { selectedRows, modalVisible } = this.state;
+    const formatData = { ...allData, list: initList(allData.list) };
 
-
-
-    const menu = (
-      <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
-        <Menu.Item key="remove">删除</Menu.Item>
-        <Menu.Item key="approval">批量审批</Menu.Item>
-      </Menu>
-    );
-
-    const parentMethods = {
-      handleAdd: this.handleAdd,
-      handleModalVisible: this.handleModalVisible,
-    };
-
+    const { selectedRows, visible } = this.state;
     return (
       <PageHeaderLayout title="">
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)} to="/">
+              <Button icon="plus" type="primary" onClick={() => this.handleAdd()}>
                 新建
               </Button>
               {selectedRows.length > 0 && (
-                <span>
-                  <Button>批量操作</Button>
-                  <Dropdown overlay={menu}>
-                    <Button>
-                      更多操作 <Icon type="down" />
-                    </Button>
-                  </Dropdown>
-                </span>
+                <Fragment>
+                  <Button type="primary" onClick={this.handleDispatch}><Icon type="solution" /> 分派</Button>
+                  <Popconfirm title="确定删除这些资源吗？" onConfirm={this.handleDelete} okText="是" cancelText="否">
+                    <Button type="danger"><Icon type="delete" /> 删除</Button>
+                  </Popconfirm>,
+                </Fragment>
               )}
+              <div style={{ float: 'right' }}>
+                <RadioGroup defaultValue="all" onChange={this.handleRadio}>
+                  <RadioButton value="all">全部</RadioButton>
+                  <RadioButton value="progress">未分派</RadioButton>
+                  <RadioButton value="waiting">已分派</RadioButton>
+                  <RadioButton value="signing">已签约</RadioButton>
+                  <RadioButton value="delete">被退回</RadioButton>
+                </RadioGroup>                
+              </div>
             </div>
+
             <SourceTable
               multipleSelection={true}
               selectedRows={selectedRows}
               loading={loading}
-              data={data}
-              // columns={columns}
+              data={formatData}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
+        <DispatchModal visible={visible} handleOk={this.handleModalOk} handleCancel={this.handleModalCancel} />
       </PageHeaderLayout>
     );
   }

@@ -1,0 +1,51 @@
+import React, { PureComponent } from 'react'
+import {
+  Modal,
+  Form,
+  Button,
+  Input,
+  Row,
+  Col,
+  InputNumber,
+} from "antd"
+
+const FormItem = Form.Item;
+
+function DispatchModal({ handleOk, handleCancel, visible, form }) {
+  console.log(form);
+  const { getFieldDecorator } = form;
+  return (
+    <Modal
+      visible={visible}
+      title="分派资源"
+      onOk={handleOk}
+      onCancel={handleCancel}
+      footer={[
+        <Button key="back" onClick={handleCancel}>取消</Button>,
+        <Button key="submit" type="primary" loading={false} onClick={handleOk}>
+          提交
+        </Button>,
+      ]}
+    >
+      <Form layout="inline">
+        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+          <Col md={12} sm={24}>
+            <FormItem label="员工编号">
+              {getFieldDecorator('source_id')(
+                <InputNumber min={1} max={10} defaultValue={3} />
+              )}
+            </FormItem>
+          </Col>
+          <Col md={12} sm={24}>          
+            <FormItem>
+              {getFieldDecorator('source_name')(<Input placeholder="员工姓名" />)}
+            </FormItem>
+          </Col>
+        </Row>
+
+      </Form>
+    </Modal>
+  )
+}
+
+export default Form.create({})(DispatchModal);

@@ -10,6 +10,7 @@ import StandardTable from '../StandardTable';
 
 const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
 const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
+const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
 // 表格单元
 const columns = [{
   title: '创建时间',
@@ -27,6 +28,7 @@ const columns = [{
   title: '来访渠道',
   dataIndex: 'source_channel',
   key: 'source_channel',
+  render: val => channel[val],
 }, {
   title: '资源状态',
   dataIndex: 'status',
@@ -51,7 +53,7 @@ const columns = [{
   render(val) {
     return <Badge status={statusMap[val]} text={status[val]} />;
   },
-}, {  
+}, {
   title: '未跟进天数',
   dataIndex: 'schedule_day',
   key: 'schedule_day',
@@ -60,6 +62,7 @@ const columns = [{
   title: '对接人',
   dataIndex: 'person',
   key: 'person',
+  render: text => text ? text : '暂无',
 }, {
   title: '操作',
   dataIndex: 'source_id',
@@ -71,7 +74,7 @@ const columns = [{
 
 export default class SourceTable extends PureComponent {
 
-    renderTable = () => {
+  renderTable = () => {
     const {
       data: { list },
       loading,
@@ -82,7 +85,7 @@ export default class SourceTable extends PureComponent {
   renderStandardTable = () => {
     return <StandardTable {...this.props} columns={columns} />
   }
-
+  
   render() {
     const { multipleSelection } = this.props;
     return multipleSelection ? <this.renderStandardTable /> : <this.renderTable />;

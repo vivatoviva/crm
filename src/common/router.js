@@ -175,11 +175,11 @@ export const getRouterData = app => {
     // },
     // 用户主页
     '/home': {
-      component: dynamicWrapper(app, ['project', 'activities', 'chart', 'source'], () => import('../routes/Home/Workplace')),
+      component: dynamicWrapper(app, ['project', 'activities', 'chart', 'source', 'userInfo'], () => import('../routes/Home/Workplace')),
     },
     // 资源管理
     '/resource/': {
-      component: dynamicWrapper(app, ['source', 'rule'], () => import('../routes/Resource/TableList')),
+      component: dynamicWrapper(app, ['source', 'rule', 'source'], () => import('../routes/Resource/TableList')),
     },
     '/resource/add': {
       component: dynamicWrapper(app, ['source'], () => import('../routes/Resource/NewSource')),

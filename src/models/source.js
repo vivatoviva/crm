@@ -1,4 +1,4 @@
-import { queryRecent } from '../services/source';
+import { queryRecent, querySource, getDetail } from '../services/source';
 
 
 export default {
@@ -6,10 +6,19 @@ export default {
 
   state: {
     // 最近资源
+    detail: {
+      detail: {},
+      sign: {},
+      contract: {},
+    },
     recentData: {
       list: [],
       pagination: {},
-    }
+    },
+    allData: {
+      list: [],
+      pagination: {},
+    },
   },
 
   effects: {
@@ -21,6 +30,22 @@ export default {
         payload: data,
       })
     },
+    *fetchList({ payload }, { call, put }) {
+      const response = yield call(querySource, payload);
+      const { code, data } = response;
+      if(code === 0) return;
+      yield put({
+        type: 'saveSource',
+        payload: data,
+      })
+    },
+    *getDetail({ payload }, { call, put }) {
+      const response = yield call(getDetail);
+      yield put({
+        type: 'saveDetail',
+        payload: response.data,
+      })
+    },
   },
 
   reducers: {
@@ -29,8 +54,20 @@ export default {
         ...state,
         recentData: {
           list: action.payload
-        }
+        },
+      }
+    },
+    saveSource(state, { payload }) {
+      return {
+        ...state,
+        allData: payload,
+      }
+    },
+    saveDetail(state, { payload }) {
+      return {
+        ...state,
+        detail: payload,
       }
     }
-  }
+  },
 }

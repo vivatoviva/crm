@@ -9,6 +9,7 @@ import {
   Input,
   Select,
   Button,
+  message,
 } from 'antd';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 
@@ -38,7 +39,8 @@ export default class NewSource extends PureComponent {
     const { validateFieldsAndScroll } = form;
     validateFieldsAndScroll((error, values) => {
       if(!error) {
-        console.log('表单数据', values)
+        console.log('表单数据', values);
+        message.success("添加成功");
       } else {
         console.log('错误')
       }
@@ -207,7 +209,7 @@ export default class NewSource extends PureComponent {
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="员工姓名">
                   {getFieldDecorator('person_name', {
-                      rules: [{ required: true, message: '请输入用户名称' }],
+                      rules: [{ required: false, message: '请输入用户名称' }],
                     })(
                       <Input placeholder="员工名称" disabled="true" />
                     )}

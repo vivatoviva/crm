@@ -10,6 +10,8 @@ const userInfo = mock({
     user_sign_num: 10,
     user_rank: 1,
     new_source: 10,
+    person_num: 20,
+    user_avatar: 'https://avatars1.githubusercontent.com/u/26970959?s=460&v=4',
   },
 })
 

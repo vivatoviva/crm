@@ -9,10 +9,13 @@ import {
   Select,
   Table,
   Button,
+  Modal,
 } from 'antd';
 import DescriptionList from 'components/DescriptionList';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 
+
+const confirm = Modal.confirm;
 const { Option } = Select;
 const { Description } = DescriptionList;
 const FormItem = Form.Item;
@@ -28,14 +31,37 @@ const breadcrumbList = [{
   title: '详细信息',
 }];
 
+
+function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
+  confirm({
+    title,
+    content,
+    okText: '确定',
+    cancelText: '取消',
+    okType,
+    onCancel,
+  });
+}
+
 // 页面头部操作
-const action = (
-  <div>
-    <Button type="primary">编辑</Button>
-    <Button>签约</Button>
-    <Button type="danger">退回</Button>
-  </div>
-);
+const action = ({handleEdit, isEdit, handleReset }) => {
+  return (
+    <div>
+      <Button type="primary" onClick={handleEdit}>{isEdit ? '保存' : '编辑'}</Button>
+      {isEdit ? <Button onClick={handleReset}>重置</Button> :''}
+      <Button onClick={showConfirm.bind(null, {title: '确定签约吗？'})}>签约</Button>
+      <Button
+        type="danger"
+        onClick={showConfirm.bind(null, {
+          title: '确定退回这个资源吗？',
+          content: '这个资源将放回未分配中，所有有关此资源的联系信息将被清除！',
+          okType: 'danger',
+        })}
+      >退回
+      </Button>
+    </div>
+  );
+}
 
 const dataSource = [{
   key: '1',
@@ -55,7 +81,7 @@ const columns = [{
   key: 'id',
   render: () => (
     <a href="">编辑</a>
-  )
+  ),
 }, {
   title: '创建时间',
   dataIndex: 'name',
@@ -81,100 +107,89 @@ const columns = [{
   dataIndex: 'address',
   key: 'address',
 }];
-// 基本信息
-const Basic = () => {
-  return (
-    <DescriptionList size="large" >
-      <Description term="资源名称">
-        genluo
-      </Description>
-      <Description term="是否回国">
-        是
-      </Description>
-      <Description term="未来规划">
-        就业
-      </Description>
-      <Description term="来访渠道">
-        淘宝
-      </Description>
-      <Description term="就读院校">
-        重庆邮电大学
-      </Description>
-      <Description term="就读专业">
-        信息管理与信息系统
-      </Description>
-      <Description term="就读年级">
-        2016
-      </Description>
-      <Description term="联系电话">
-        17784455445
-      </Description>
-      <Description term="QQ">
-        1461304646
-      </Description>
-      <Description term="微信">
-        a1346165464
-      </Description>
-    </DescriptionList>
-  )
-}
+
+
+const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
+const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
+
+  
 // 合约列表
 const RecordList = () => (
   <Table dataSource={dataSource} columns={columns} />
 )
+
 // 签约信息
-const SignData = () => (
-  <DescriptionList size="large" >
-    <Description term="签约人名称">
-      genluo
-    </Description>
-    <Description term="签约人手机">
-      1461304646
-    </Description>
-    <Description term="证件类型">
-      身份证
-    </Description>
-    <Description term="签约人证件号码">
-      61052419970501XXXX
-    </Description>
-    <Description term="签约人邮箱">
-      17051298278@163.com
-    </Description>
-    <Description term="签约人地址">
-      陕西省渭南市合阳县城关镇东街村一组XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    </Description>
-  </DescriptionList>
-)
-// 签约信息
-const ContractData = () => (
-  <DescriptionList size="large" >
+const ContractData = ({ data = {}}) => (
+  <DescriptionList size="large">
     <Description term="合同类型">
-      genluo
+      {data.contract_type}
     </Description>
     <Description term="合同暗号">
-      1461304646
+      {data.contract_signal}
     </Description>
     <Description term="合同名称">
-      身份证
+      {data.contract_name}
     </Description>
     <Description term="签约顾问">
-      61052419970501XXXX
+      {data.contract_consultant}
     </Description>
     <Description term="合同金额">
-      17051298278@163.com
+      {`￥ ${data.contract_amount}`}
     </Description>
     <Description term="签约日期">
-      2016-5-1
+      {data.contract_date}
     </Description>
   </DescriptionList>
 )
-@connect(({ rule, loading }) => ({
-  rule,
+
+
+
+
+function showDeleteConfirm() {
+  confirm({
+    title: 'Are you sure delete this task?',
+    content: 'Some descriptions',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    onOk() {
+      console.log('OK');
+    },
+    onCancel() {
+      console.log('Cancel');
+    },
+  });
+}
+
+
+
+@connect(({ source, loading }) => ({
+  detail: source.detail.detail,
+  sign: source.detail.sign,
+  contract: source.detail.contract,
   loading: loading.models.rule,
+  loadingData: loading.effects['source/getDetail'],
 }))
 @Form.create()
 export default class NewSource extends PureComponent {
+
+  state = {
+    isEdit: true,
+  }
+
   
+
+  componentDidMount() {
+    const { dispatch, match } = this.props;
+    dispatch({
+      type: 'source/getDetail',
+      payload: {
+        source_id: match.params.id,
+      },
+    })
+  }
+
+
   handleSubmit = () => {
     const { form } = this.props;
     const { validateFieldsAndScroll } = form;
@@ -192,24 +207,230 @@ export default class NewSource extends PureComponent {
     form.resetFields();
   }
 
+  handleEdit = () => {
+    // 保存按钮
+    
+    if(this.state.isEdit) {
+      showConfirm({
+        title: '确定保存吗？', 
+        onOk() {
 
+        },
+        onCancel() {
+
+        },
+      })
+    }
+
+    this.setState({
+      isEdit: !this.state.isEdit,
+    })
+  }
+
+  handleReset = () => {
+    const { form } = this.props;
+    form.resetFields();
+  }
+
+  renderBasic = ({ data = {} }) => {
+    const { form } = this.props;
+    const { isEdit } = this.state;
+    const { getFieldDecorator } = form;
+    return (
+      <Form>
+        <DescriptionList size="large" >
+          <Description term="资源名称">
+            {isEdit ? getFieldDecorator('source_name', {
+                rules: [{ required: true, message: '请选择用户是否回国' }],
+                initialValue: data.source_name,
+                
+            })(<Input placeholder="请输入用户名称" />) : data.source_name}
+          </Description>
+          <Description term="是否回国">
+            {isEdit ? getFieldDecorator('source_comeBack', {
+              rules: [{ required: true, message: '请选择用户是否回国' }],
+              initialValue: data.source_comeBack,
+            })(
+              <Select
+                placeholder="请选择用户是否回国"
+              >
+                <Option value="1">是</Option>
+                <Option value="2">否</Option>
+              </Select>
+            ) : Number(data.source_comeBack) === 1 ? '是' : '否'}
+          </Description>
+          <Description term="未来规划">
+            {isEdit ? getFieldDecorator('source_planning', {
+              rules: [{ required: true, message: '请选择用户未来规划' }],
+              initialValue: data.source_planning,
+            })(
+              <Select
+                placeholder="请选择用户未来规划"
+              >
+                <Option value="1">求学</Option>
+                <Option value="2">就业</Option>
+              </Select>
+            ) : data.source_planning}
+          </Description>
+          <Description term="来访渠道">
+            {isEdit ? getFieldDecorator('source_channel',{
+              rules: [{ required: true, message: '请选择来访渠道' }],
+              initialValue: data.source_channel,
+            })(
+              <Select
+                placeholder="请选择用户来访渠道"
+              >
+                <Option value="1">淘宝</Option>
+                <Option value="2">网站</Option>
+                <Option value="3">校园大使</Option>
+                <Option value="4">市场</Option>
+                <Option value="5">老带新</Option>
+              </Select>
+            ):channel[data.source_channel]}
+          </Description>
+          <Description term="就读院校">
+            {isEdit ? getFieldDecorator('source_school', {
+              rules: [{ required: true, message: '请填写就读院校' }],
+              initialValue: data.source_school,
+            })(
+              <Input placeholder="请填写就读院校" />
+            ):data.source_school}
+          </Description>
+          <Description term="就读专业">
+            {isEdit ?  getFieldDecorator('source_profession', {
+              rules: [{ required: true, message: '请填写就读专业' }],
+              initialValue: data.source_profession,
+            })(
+              <Input placeholder="请填写就读专业" />
+            ) : data.source_profession}
+          </Description>
+          <Description term="就读年级">
+            {isEdit ? getFieldDecorator('source_grade', {
+              rules: [{ required: true, message: '请选择就读年级' }],
+              initialValue: data.source_grade,
+            })(
+              <Select
+                placeholder="请选择就读年级"
+              >
+                <Option value="2016">2016</Option>
+                <Option value="2017">2017</Option>
+              </Select>
+            ) :data.source_grade}
+          </Description>
+          <Description term="联系电话">
+            {isEdit ? getFieldDecorator('source_phone',{
+              rules: [{ required: true, message: '请输入用户电话' }],
+              initialValue: data.source_phone,
+            })(
+              <Input placeholder="请输入用户电话" />
+            ) : data.source_phone}
+          </Description>
+          <Description term="QQ">
+            {isEdit ? getFieldDecorator('source_qq', {
+              rules: [{ required: true, message: '请输入QQ号码' }],
+              initialValue: data.source_qq,
+            })(
+              <Input placeholder="请输入QQ号码" />
+            ) : <a href={`tencent://message/?Menu=yes&uin=${data.source_qq}`} target="_blank">
+                  {data.source_qq}
+                </a>
+            }
+          </Description>
+          <Description term="微信">
+            {isEdit ? getFieldDecorator('source_wei', {
+              rules: [{ required: true, message: '请输入微信号码' }],
+              initialValue: data.source_wei,
+            })(
+              <Input placeholder="请输入微信号码" />
+            ) : data.source_wei}
+          </Description>
+        </DescriptionList>
+      </Form>
+    )
+  }
+
+  renderSign = ({ data = {}}) => {
+    const { getFieldDecorator } = this.props.form;
+    const { isEdit } = this.state;
+
+    return (
+      <Form>
+        <DescriptionList size="large">
+          <Description term="签约人名称">
+            {isEdit ? getFieldDecorator('sign_name', {
+              rules: [{ required: true, message: '请输入微信号码' }],
+              initialValue: data.sign_name,
+            })(
+              <Input placeholder="签约人名称" />  
+            ):data.sign_name}
+          </Description>
+          <Description term="签约人手机">
+            {isEdit ?getFieldDecorator('sign_phone', {
+              rules: [{ required: true, message: '请输入签约人手机号码？' }],
+              initialValue: data.sign_phone,              
+            })(
+              <Input placeholder="签约人手机" />
+            ) : data.sign_phone}
+          </Description>
+          <Description term="证件类型">
+            {isEdit ? getFieldDecorator('sign_type', {
+               rules: [{ required: true, message: '请输入签约人手机号码？' }],
+               initialValue: data.sign_type,               
+            })(
+              <Select>
+                <Option value="1">身份证</Option>
+                <Option value="2">其他证件</Option>
+              </Select>
+            ) :data.sign_type}
+          </Description>
+          <Description term="签约人证件号码">
+            {isEdit ? getFieldDecorator('sign_type_num', {
+              rules: [{ required: true, message: '请输入签约人证件号码' }],
+              initialValue: data.sign_type,     
+            })(
+              <Input placeholder="请输入签约人证件号码？" />
+            ): data.sign_type_num}
+          </Description>
+          <Description term="签约人邮箱">
+            {isEdit ? getFieldDecorator('sign_email', {
+                rules: [{ required: true, message: '请输入签约人邮箱' }],
+                initialValue: data.sign_email,     
+              })(
+                <Input placeholder="请输入签约人邮箱" />
+              ): <a href={`mailto:${data.sign_email}`}>{data.sign_email}</a>}
+          </Description>
+          <Description term="签约人地址">
+            {isEdit ? getFieldDecorator('sign_address', {
+                rules: [{ required: true, message: '请输入签约人地址' }],
+                initialValue: data.sign_address,     
+              })(
+                <Input placeholder="请输入签约人地址" />
+              ): data.sign_address}
+
+          </Description>
+        </DescriptionList>
+      </Form>
+  )}
 
   render() {
-    const { form } = this.props;
+    const { form, detail, sign, contract, loadingData } = this.props;
+    const { isEdit } = this.state;
     const { getFieldDecorator } = form;
 
     return (
       <PageHeaderLayout
         title="详细信息"
         breadcrumbList={breadcrumbList}
-        action={action}
+        action={action({ handleEdit: this.handleEdit, isEdit, handleReset: this.handleReset })}
+        loading={loadingData}
       >
-        <Card title="基本信息">
-          <Basic />
+        <Card title="基本信息" loading={loadingData}>
+          <this.renderBasic data={detail} />
         </Card>
         <Card
           title="联系记录"
           style={{marginTop: 20}}
+          loading={loadingData}
           extra={<a href="#">新增联系记录</a>}
         >
           <RecordList />
@@ -217,174 +438,19 @@ export default class NewSource extends PureComponent {
         <Card
           title="签约信息"
           style={{marginTop: 20}}
+          loading={loadingData}
+          // extra={<a onClick={showConfirm.bind(null, {title: '确定签约吗？'})}>签约</a>}
         >
-          <SignData />
+          <this.renderSign data={sign} />
         </Card>
         <Card
           title="合同信息"
           style={{marginTop: 20}}
+          loading={loadingData}
         >
-          <ContractData />
+          <ContractData data={contract} />
         </Card>
       </PageHeaderLayout>
     )
   }
 }
-
-{/* <Form
-layout="vertical"
-hideRequiredMark
->
-<Card title="基本信息">
-  <Row gutter={16}>
-    <Col className="gutter-row" lg={6} md={12} sm={24}>
-      <FormItem label="资源名称">
-        {getFieldDecorator('source_name', {
-            rules: [{ required: true, message: '请输入用户名称' }],
-          })(
-            <Input placeholder="请输入用户名称" />
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="是否回国">
-        {getFieldDecorator('source_comeBack', {
-            rules: [{ required: true, message: '请选择用户是否回国' }],
-          })(
-            <Select
-              placeholder="请选择用户是否回国"
-            >
-              <Option value="yes">是</Option>
-              <Option value="no">否</Option>
-            </Select>,
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="未来规划">
-        {getFieldDecorator('source_planning', {
-            rules: [{ required: true, message: '请选择用户未来规划' }],
-          })(
-            <Select
-              placeholder="请选择用户未来规划"
-            >
-              <Option value="1">求学</Option>
-              <Option value="2">就业</Option>
-            </Select>
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" lg={6} md={12} sm={24}>
-      <FormItem label="来访渠道">
-        {getFieldDecorator('source_channel', {
-            rules: [{ required: true, message: '请选择来访渠道' }],
-          })(
-            <Select
-              placeholder="请选择用户来访渠道"
-            >
-              <Option value="1">淘宝</Option>
-              <Option value="2">网站</Option>
-              <Option value="3">校园大使</Option>
-              <Option value="4">市场</Option>
-              <Option value="5">老带新</Option>
-            </Select>
-          )}
-      </FormItem>
-    </Col>
-  </Row>
-</Card>
-
-<Card
-  title="院校联系信息"
-  style={{marginTop: 20}}
->
-  <Row gutter={16}>       
-    <Col className="gutter-row" lg={6} md={12} sm={24}>
-      <FormItem label="就读院校">
-        {getFieldDecorator('source_school', {
-            rules: [{ required: true, message: '请填写就读院校' }],
-          })(
-            <Input placeholder="请填写就读院校" />
-          )}
-      </FormItem>
-    </Col> 
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="就读专业">
-        {getFieldDecorator('source_profession', {
-            rules: [{ required: true, message: '请填写就读专业' }],
-          })(
-            <Input placeholder="请填写就读专业" />
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="就读年级">
-        {getFieldDecorator('source_grade', {
-            rules: [{ required: true, message: '请选择就读年级' }],
-          })(
-            <Select
-              placeholder="请选择就读年级"
-            >
-              <Option value="2016">2016</Option>
-              <Option value="2017">2017</Option>
-            </Select>
-          )}
-      </FormItem>
-    </Col>
-  </Row>
-  <Row gutter={16}>
-    <Col className="gutter-row" lg={6} md={12} sm={24}>
-      <FormItem label="联系电话">
-        {getFieldDecorator('source_phone', {
-            rules: [{ required: true, message: '请输入用户电话' }],
-          })(
-            <Input placeholder="请输入用户电话" />
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="QQ">
-        {getFieldDecorator('source_qq', {
-            rules: [{ required: true, message: '请输入QQ号码' }],
-          })(
-            <Input placeholder="请输入QQ号码" />
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="微信">
-        {getFieldDecorator('source_wei', {
-            rules: [{ required: true, message: '请输入微信号码' }],
-          })(
-            <Input placeholder="请输入微信号码" />
-          )}
-      </FormItem>
-    </Col>
-  </Row>
-</Card>
-<Card
-  title="对接人信息"
-  style={{marginTop: 20}}
->
-  <Row gutter={16}>
-    <Col className="gutter-row" lg={6} md={12} sm={24}>
-      <FormItem label="对接员工编号">
-        {getFieldDecorator('person_id', {
-            rules: [{ required: true, message: '请输入用户名称' }],
-          })(
-            <Input placeholder="请填写员工编号" />
-          )}
-      </FormItem>
-    </Col>
-    <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
-      <FormItem label="员工姓名">
-        {getFieldDecorator('person_name', {
-            rules: [{ required: true, message: '请输入用户名称' }],
-          })(
-            <Input placeholder="员工名称" disabled="true" />
-          )}
-      </FormItem>
-    </Col>
-  </Row>
-</Card>
-</Form> */}
