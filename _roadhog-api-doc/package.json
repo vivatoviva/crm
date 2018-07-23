@@ -1,0 +1,10 @@
+{
+  "name": "roadhog-api-doc-boilerplate",
+  "private": true,
+  "scripts": {
+    "start": "node ./win-start.js",
+    "build": "node ./win-build.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

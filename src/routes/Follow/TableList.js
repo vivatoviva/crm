@@ -9,7 +9,6 @@ import {
   DatePicker,
   Button,
   Table,
-  Icon,
 } from 'antd'
 import { connect } from 'dva'
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
@@ -34,7 +33,7 @@ const columns = [
     key: 'operation',
     fixed: 'right',
     width: 100,
-    render: () => <a href="javascript:;">详情</a>,
+    render: () => <a href="#">详情</a>,
   },
 ];
 
@@ -64,57 +63,55 @@ export default class TableList extends PureComponent {
       <PageHeaderLayout title="资源跟进记录">
         <Card>
           <div className={Styles.tableListForm}>
-          <Form
-            layout="inline"
-          >
-            <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-              <Col md={8} sm={24}>
-                <FormItem label="资源名称">
-                  {getFieldDecorator('source_name')(
-                    <Input placeholder="请输入用户名称" />
-                  )}
-                </FormItem>
-              </Col>
-              <Col md={8} sm={24}>
-                <FormItem label="资源状态">
-                  {getFieldDecorator('status')(
-                    <Select placeholder="请选择" style={{ width: '100%' }}>
-                      <Option value="0">全部</Option>
-                      <Option value="1">长线用户</Option>
-                      <Option value="2">深度用户</Option>
-                      <Option value="3">潜在用户</Option>
-                      <Option value="4">强烈意向</Option>
-                      <Option value="5">联系不到</Option>
-                    </Select>
-                  )}
-                </FormItem>
-              </Col>
-              <Col md={8} sm={24}>
-                <FormItem label="未跟进天数">
-                  {getFieldDecorator('schedule_day')(
-                    <Select placeholder="请选择未跟进天数">
-                      <Option value="">全部</Option>
-                      <Option value="0">0</Option>
-                      <Option value="1">1</Option>
-                      <Option value="2">2</Option>
-                      <Option value="3">3</Option>
-                      <Option value="4">4</Option>
-                      <Option value="5">5</Option>
-                    </Select>
-                  )}
-                </FormItem>        
-              </Col>
-              <Col span="16">
-                <FormItem label="起止日期">
-                  {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
-                </FormItem>
-              </Col>
-              <Col md={8} sm={24}>
-                <Button type="primary" style={{marginRight: 20}}>查询</Button>
-                <Button>重置</Button>
-              </Col>
-            </Row>
-          </Form>
+            <Form layout="inline">
+              <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+                <Col md={8} sm={24}>
+                  <FormItem label="资源名称">
+                    {getFieldDecorator('source_name')(
+                      <Input placeholder="请输入用户名称" />
+                    )}
+                  </FormItem>
+                </Col>
+                <Col md={8} sm={24}>
+                  <FormItem label="资源状态">
+                    {getFieldDecorator('status')(
+                      <Select placeholder="请选择" style={{ width: '100%' }}>
+                        <Option value="0">全部</Option>
+                        <Option value="1">长线用户</Option>
+                        <Option value="2">深度用户</Option>
+                        <Option value="3">潜在用户</Option>
+                        <Option value="4">强烈意向</Option>
+                        <Option value="5">联系不到</Option>
+                      </Select>
+                    )}
+                  </FormItem>
+                </Col>
+                <Col md={8} sm={24}>
+                  <FormItem label="未跟进天数">
+                    {getFieldDecorator('schedule_day')(
+                      <Select placeholder="请选择未跟进天数">
+                        <Option value="">全部</Option>
+                        <Option value="0">0</Option>
+                        <Option value="1">1</Option>
+                        <Option value="2">2</Option>
+                        <Option value="3">3</Option>
+                        <Option value="4">4</Option>
+                        <Option value="5">5</Option>
+                      </Select>
+                    )}
+                  </FormItem>        
+                </Col>
+                <Col span="16">
+                  <FormItem label="起止日期">
+                    {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
+                  </FormItem>
+                </Col>
+                <Col md={8} sm={24}>
+                  <Button type="primary" style={{marginRight: 20}}>查询</Button>
+                  <Button>重置</Button>
+                </Col>
+              </Row>
+            </Form>
           </div>
           <Table
             style={{marginTop: 40}}

@@ -6,7 +6,6 @@ import {
   Row,
   Col,
   Input,
-  DatePicker,
   Button,
   Table,
   Icon,
@@ -17,7 +16,6 @@ import Styles from './TableList.less';
 
 const FormItem = Form.Item;
 const { Option }  = Select;
-import StandardTable from "components/StandardTable";
 
 const columns = [
   { title: '员工编号', dataIndex: 'name', key: 'name' },
@@ -29,7 +27,7 @@ const columns = [
   {
     title: '操作',
     key: 'operation',
-    render: () => <a href="javascript:;">删除</a>,
+    render: () => <a href="#">删除</a>,
   },
 ];
 
@@ -96,7 +94,7 @@ export default class TableList extends PureComponent {
               </Row>
             </Form>
           </div>
-
+          <Button type="primary"><Icon type="user-add" />新增</Button>
           <Table
             style={{marginTop: 40}}
             columns={columns}

@@ -7,7 +7,7 @@ import { getProfileAdvancedData } from './mock/profile';
 import { getNotices } from './mock/notices';
 import { recentData } from './mock/source'
 import { format, delay } from 'roadhog-api-doc';
-
+import { userInfo } from './mock/info';
 
 console.log(recentData);
 
@@ -140,7 +140,10 @@ const proxy = {
     });
   },
   // mock数据
+  // 资源信息
   'GET /api/queryRecent': recentData,
+  //用户信息
+  'GET /api/getUserInfo': userInfo,
 };
 
 export default (noProxy ? {} : delay(proxy, 1000));

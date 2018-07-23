@@ -3,47 +3,10 @@ import moment from 'moment';
 import { connect } from 'dva';
 import { Link } from 'dva/router';
 import { Row, Col, Card, List, Avatar, Table } from 'antd';
-
+import SourceTable from "components/SourceTable";
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
-
 import styles from './Workplace.less';
 
-
-
-const columns = [{
-  title: '创建时间',
-  dataIndex: 'create_time',
-  key: 'name',
-}, {
-  title: '资源名称',
-  dataIndex: 'source_name',
-  key: 'age',
-}, {
-  title: '未来计划',
-  dataIndex: 'source_planning',
-  key: 'source_planning',
-}, {
-  title: '来访渠道',
-  dataIndex: 'source_channel',
-  key: 'source_channel'
-}, {
-  title: '资源状态',
-  dataIndex: 'status',
-  key: 'status'
-}, {
-  title: '未跟进天数',
-  dataIndex: 'schedule_day',
-  key: 'schedule_day'
-}, {
-  title: '对接人',
-  dataIndex: 'person',
-  key: 'person'
-}, {
-  title: '操作',
-  dataIndex: 'source_id',
-  key: 'id',
-  render: (text, record) => (<Link to={`/resource/detail/${text}`}>详情</Link>)
-}];
 
 
 @connect(({ project, activities, chart, loading, source }) => ({
@@ -68,7 +31,7 @@ export default class Workplace extends PureComponent {
     });
     dispatch({
       type: 'source/fetchRecent',
-      payload: '1'
+      payload: '1',
     })
   }
 
@@ -119,11 +82,8 @@ export default class Workplace extends PureComponent {
 
   render() {
     const {
-      project: { notice },
       projectLoading,
-      activitiesLoading,
-      chart: { radarData },
-      recentData: { list}
+      recentData: { list },
     } = this.props;
     
     const pageHeaderContent = (
@@ -170,10 +130,10 @@ export default class Workplace extends PureComponent {
               style={{ marginBottom: 24 }}
               title="最近的资源"
               bordered={false}
-              extra={<Link to="/">全部资源</Link>}
+              extra={<Link to="/resource">全部资源</Link>}
               loading={projectLoading}
             >
-              <Table dataSource={list} columns={columns} styles={{ padding: 0 }} />
+              <SourceTable data={{ list }} styles={{ padding: 0 }} multipleSelection={false} />
             </Card>
           </Col>
         </Row>

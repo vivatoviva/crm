@@ -1,4 +1,5 @@
 import Mock from 'mockjs';
+const Random = Mock.Random;
 
 // 最近资源
 const recentData = Mock.mock({
@@ -6,11 +7,11 @@ const recentData = Mock.mock({
   data: {
     'rencentData|5-10': [{
       source_id: '1',
-      create_time: '2016-10-5',
+      create_time: Random.date('yyyy-MM-dd'),
       source_name: 'genluo',
       source_planning: '就业',
       source_channel: '淘宝',
-      status: '长线用户',
+      'status|1-5': 1,
       schedule_day: '5',
       person: 'luogen',
       phone_num: '17784455445',

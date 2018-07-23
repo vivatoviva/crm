@@ -1,5 +1,6 @@
 import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
+import SourceTable from "components/SourceTable";
 import moment from 'moment';
 import {
   Row,
@@ -12,14 +13,12 @@ import {
   Button,
   Dropdown,
   Menu,
-  InputNumber,
   DatePicker,
   Modal,
   message,
   Badge,
   Divider,
 } from 'antd';
-import StandardTable from 'components/StandardTable';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './TableList.less';
 
@@ -178,7 +177,7 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleModalVisible = flag => {
+  handleModalVisible = () => {
     this.props.history.push('/resource/add')
 
     // this.setState({
@@ -207,7 +206,7 @@ export default class TableList extends PureComponent {
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24} >
+          <Col md={8} sm={24}>
             <FormItem label="资源名称">
               {getFieldDecorator('source_name')(<Input placeholder="请输入" />)}
             </FormItem>
@@ -241,7 +240,7 @@ export default class TableList extends PureComponent {
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24} >
+          <Col md={8} sm={24}>
             <FormItem label="资源名称">
               {getFieldDecorator('source_name')(<Input placeholder="请输入" />)}
             </FormItem>
@@ -293,12 +292,12 @@ export default class TableList extends PureComponent {
           <Col md={8} sm={24}>
             <FormItem label="对接人">
               {getFieldDecorator('person')(
-                <Input placeholder="请输入"/>
+                <Input placeholder="请输入" />
               )}
             </FormItem>
           </Col>
           <Col md={16} sm={24}>
-          <FormItem label="起止日期">
+            <FormItem label="起止日期">
               {getFieldDecorator('date', {
                 rules: [
                   {
@@ -306,7 +305,7 @@ export default class TableList extends PureComponent {
                   },
                 ],
               })(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
-          </FormItem>
+            </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <span className={styles.submitButtons}>
@@ -338,67 +337,7 @@ export default class TableList extends PureComponent {
     } = this.props;
     const { selectedRows, modalVisible } = this.state;
 
-    const columns = [
-      {
-        title: '规则编号',
-        dataIndex: 'no',
-      },
-      {
-        title: '描述',
-        dataIndex: 'description',
-      },
-      {
-        title: '服务调用次数',
-        dataIndex: 'callNo',
-        sorter: true,
-        align: 'right',
-        render: val => `${val} 万`,
-        // mark to display a total number
-        needTotal: true,
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        filters: [
-          {
-            text: status[0],
-            value: 0,
-          },
-          {
-            text: status[1],
-            value: 1,
-          },
-          {
-            text: status[2],
-            value: 2,
-          },
-          {
-            text: status[3],
-            value: 3,
-          },
-        ],
-        onFilter: (value, record) => record.status.toString() === value,
-        render(val) {
-          return <Badge status={statusMap[val]} text={status[val]} />;
-        },
-      },
-      {
-        title: '更新时间',
-        dataIndex: 'updatedAt',
-        sorter: true,
-        render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
-      },
-      {
-        title: '操作',
-        render: () => (
-          <Fragment>
-            <a href="">配置</a>
-            <Divider type="vertical" />
-            <a href="">订阅警报</a>
-          </Fragment>
-        ),
-      },
-    ];
+
 
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
@@ -432,11 +371,12 @@ export default class TableList extends PureComponent {
                 </span>
               )}
             </div>
-            <StandardTable
+            <SourceTable
+              multipleSelection={true}
               selectedRows={selectedRows}
               loading={loading}
               data={data}
-              columns={columns}
+              // columns={columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
