@@ -1,5 +1,6 @@
 import Mock from 'mockjs';
-const Random = Mock.Random;
+
+const { Random } = Mock;
 
 const basic = Mock.mock({
   employee_id: Random.id(),

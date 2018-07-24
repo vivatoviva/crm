@@ -1,5 +1,6 @@
 import Mock from 'mockjs';
-const { Random, mock } = Mock;
+
+const { mock } = Mock;
 
 // 用户信息
 const userInfo = mock({

@@ -20,12 +20,8 @@ import Styles from './TableList.less';
 const FormItem = Form.Item;
 const { Option }  = Select;
 const { RangePicker } = DatePicker;
-
-
-
 const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
 const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
-
 const columns = [
   { title: '资源名称', width: 100, dataIndex: 'source_name', key: 'source_name', fixed: 'left' },
   { title: '资源状态',

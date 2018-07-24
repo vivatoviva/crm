@@ -139,12 +139,19 @@ const proxy = {
     });
   },
   // mock数据
-  // 资源信息
+  // 资源信息(旧的)
   'GET /api/queryRecent': recentData,
   'POST /api/querySource': listData,
   'GET /api/getDetail': detailData,
   'GET /api/queryContract': contactData,
   'POST /api/query/follow': followData,
+  // 资源信息（新方式）
+
+  // 'GET /api/source/recent': recentData,
+  // 'POST /api/source/all': listData,
+  // 'GET /api/source/detail': detailData,
+  // 'GET /api/source/contract': contractData,
+
   //用户信息
   'GET /api/getUserInfo': userInfo,
   // 员工接口

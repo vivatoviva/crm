@@ -51,7 +51,7 @@ export default {
       })
     },
     *getDetail({ payload }, { call, put }) {
-      const response = yield call(getDetail);
+      const response = yield call(getDetail, payload);
       yield put({
         type: 'saveDetail',
         payload: response.data,
@@ -70,7 +70,7 @@ export default {
         type: 'saveFollow',
         payload: response.data,
       })
-    } 
+    }, 
   },
 
   reducers: {
@@ -78,7 +78,7 @@ export default {
       return {
         ...state,
         recentData: {
-          list: action.payload
+          list: action.payload,
         },
       }
     },

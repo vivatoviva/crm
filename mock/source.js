@@ -1,5 +1,6 @@
 import Mock from 'mockjs';
-const Random = Mock.Random;
+
+const { Random } = Mock;
 
 
 const basic = {
@@ -10,7 +11,7 @@ const basic = {
   'source_channel|1-5': 1, // 1： 淘宝， 2 网站 ， 3 校园大使， 4 市场， 5 老带新
   'status|1-5': 1,
   schedule_day: '5',
-  person: function() {
+  person() {
     const num = Random.integer(1,10);
     if(num%2 ===0 ) {
       return Random.cname();

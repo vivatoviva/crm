@@ -106,8 +106,9 @@ export default class TableList extends PureComponent {
   }
   
   handleAdd = () => {
+    const { addVisible } = this.state;
     this.setState({
-      addVisible: !this.state.addVisible,
+      addVisible: !addVisible,
     })
   }
 
@@ -121,7 +122,7 @@ export default class TableList extends PureComponent {
   handleAddCancel = () => {
     this.setState({
       addVisible: false,
-      employData: {},
+      employeeData: {},
     })
   }
 
@@ -135,7 +136,7 @@ export default class TableList extends PureComponent {
         visible={addVisible}
         onOk={this.handleAddOk}
         onCancel={this.handleAddCancel}
-        destroyOnClose={true}
+        destroyOnClose="true"
       >
         <Form>
           <FormItem label="员工姓名" {...formItemLayout}>
@@ -143,7 +144,7 @@ export default class TableList extends PureComponent {
               getFieldDecorator('employee_name', {
                 initialValue: data.employee_name,
               })(
-                <Input placeholder="员工姓名" />
+                <Input placeholder="请输入员工姓名" />
               )
             }
           </FormItem>
@@ -153,7 +154,7 @@ export default class TableList extends PureComponent {
               getFieldDecorator('employee_permission', {
                 initialValue: data.employee_permission,
               })(
-                <Select>
+                <Select placeholder="请选择员工权限">
                   <Option value="1">客服人员</Option>
                   <Option value="2">销售人员</Option>
                   <Option value="3">销售主管</Option>
@@ -166,7 +167,7 @@ export default class TableList extends PureComponent {
               getFieldDecorator('employee_phone', {
                 initialValue: data.employee_phone,
               })(
-                <Input placeholder="联系电话" />
+                <Input placeholder="请输入员工联系电话" />
               )
             }
           </FormItem>
