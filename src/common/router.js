@@ -193,7 +193,7 @@ export const getRouterData = app => {
     },
     // 员工管理
     '/person': {
-      component: dynamicWrapper(app, [], () => import('../routes/Employee/TableList')),
+      component: dynamicWrapper(app, ['employee'], () => import('../routes/Employee/TableList')),
     },
   };
   // Get name from ./menu.js or just set it in the router data.

@@ -5,7 +5,8 @@ import { getFakeChartData } from './mock/chart';
 import { getProfileBasicData } from './mock/profile';
 import { getProfileAdvancedData } from './mock/profile';
 import { getNotices } from './mock/notices';
-import { recentData, listData, detailData } from './mock/source'
+import { recentData, listData, detailData, contactData, followData } from './mock/source'
+import { employeeList } from './mock/employee'
 import { format, delay } from 'roadhog-api-doc';
 import { userInfo } from './mock/info';
 
@@ -142,8 +143,12 @@ const proxy = {
   'GET /api/queryRecent': recentData,
   'POST /api/querySource': listData,
   'GET /api/getDetail': detailData,
+  'GET /api/queryContract': contactData,
+  'POST /api/query/follow': followData,
   //用户信息
   'GET /api/getUserInfo': userInfo,
+  // 员工接口
+  'POST /api/queryEmployeeList': employeeList,
 };
 
 export default (noProxy ? {} : delay(proxy, 1000));

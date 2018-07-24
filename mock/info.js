@@ -1,6 +1,7 @@
 import Mock from 'mockjs';
 const { Random, mock } = Mock;
 
+// 用户信息
 const userInfo = mock({
   code: 10001,
   data: {

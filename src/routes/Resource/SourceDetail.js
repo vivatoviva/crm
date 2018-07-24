@@ -1,8 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva'
 import {
-  Row,
-  Col,
   Card,
   Form,
   Input,
@@ -10,9 +8,14 @@ import {
   Table,
   Button,
   Modal,
+  message,
+  Divider,
+  Popconfirm,
+  Badge,
 } from 'antd';
 import DescriptionList from 'components/DescriptionList';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
+import ContractModal from './ContactModal';
 
 
 const confirm = Modal.confirm;
@@ -36,6 +39,7 @@ function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
   confirm({
     title,
     content,
+    onOk,
     okText: '确定',
     cancelText: '取消',
     okType,
@@ -63,59 +67,74 @@ const action = ({handleEdit, isEdit, handleReset }) => {
   );
 }
 
-const dataSource = [{
-  key: '1',
-  name: '胡彦斌',
-  age: 32,
-  address: '西湖区湖底公园1号'
-}, {
-  key: '2',
-  name: '胡彦祖',
-  age: 42,
-  address: '西湖区湖底公园1号'
-}];
-
-const columns = [{
-  title: '操作',
-  dataIndex: 'action',
-  key: 'id',
-  render: () => (
-    <a href="">编辑</a>
-  ),
-}, {
-  title: '创建时间',
-  dataIndex: 'name',
-  key: 'name',
-}, {
-  title: '联系类型',
-  dataIndex: 'age',
-  key: 'age',
-}, {
-  title: '联系内容',
-  dataIndex: 'address',
-  key: 'address',
-}, {
-  title: '对接人',
-  dataIndex: 'address',
-  key: 'address',
-}, {
-  title: '预计签约金额',
-  dataIndex: 'address',
-  key: 'address',
-}, {
-  title: '预计签约时间',
-  dataIndex: 'address',
-  key: 'address',
-}];
-
-
 const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
+const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
 const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
+const contractMap = ['', '微信', '电话', 'QQ', '上门', '邮箱', '无'];
+
+
+const columns = (editFun, deleteFun) => {
+  return [{
+    title: '创建时间',
+    dataIndex: 'contract_time',
+    key: 'contract_time',
+  }, {
+    title: '联系类型',
+    dataIndex: 'contract_type',
+    key: 'contract_type',
+    align: 'center',
+    render: val => contractMap[val],
+  }, {
+    title: '资源状态',
+    dataIndex: 'status',
+    key: 'status',
+    render(val) {
+      return <Badge status={statusMap[val]} text={status[val]} />;
+    },
+  
+  }, {
+    title: '联系内容',
+    dataIndex: 'contract_content',
+    key: 'contract_content',
+  }, {
+    title: '对接人',
+    dataIndex: 'person',
+    key: 'person',
+  }, {
+    title: '预计签约金额',
+    dataIndex: 'contract_price',
+    key: 'contract_price',
+    align: 'center',
+    render: val => {
+      return `￥ ${val}`
+    },
+  }, {
+    title: '预计签约时间',
+    dataIndex: 'create_time',
+    key: 'create_time',
+  }, {
+    title: '操作',
+    dataIndex: 'action',
+    key: 'id',
+    align: 'center',
+    render: (val, record) => (
+      <>
+        <a onClick={() => editFun(record)}>编辑</a>
+        <Divider type="vertical" />
+        <Popconfirm title="确定删除本条联系记录吗？" okText="是" cancelText="否">
+          <a href="#">删除</a>
+        </Popconfirm>
+      </>
+    ),
+  }]
+};
+
+
 
   
-// 合约列表
-const RecordList = () => (
-  <Table dataSource={dataSource} columns={columns} />
+// 联系列表
+const RecordList = ({ datasource: data = [], editFun }) => (
+  <Table dataSource={data} columns={columns(editFun)} />
 )
 
 // 签约信息
@@ -167,6 +186,7 @@ function showDeleteConfirm() {
   detail: source.detail.detail,
   sign: source.detail.sign,
   contract: source.detail.contract,
+  contactData: source.contract.list,
   loading: loading.models.rule,
   loadingData: loading.effects['source/getDetail'],
 }))
@@ -174,18 +194,24 @@ function showDeleteConfirm() {
 export default class NewSource extends PureComponent {
 
   state = {
-    isEdit: true,
+    isEdit: false,
+    contractModal: false,
+    contractFormData: {},
   }
 
   
 
   componentDidMount() {
     const { dispatch, match } = this.props;
+
     dispatch({
       type: 'source/getDetail',
       payload: {
         source_id: match.params.id,
       },
+    })
+    dispatch({
+      type: 'source/fetchContract',
     })
   }
 
@@ -196,8 +222,10 @@ export default class NewSource extends PureComponent {
     validateFieldsAndScroll((error, values) => {
       if(!error) {
         console.log('表单数据', values)
+        message.success('保存成功')
       } else {
         console.log('错误')
+        message.error('保存失败')
       }
     })
   }
@@ -207,29 +235,64 @@ export default class NewSource extends PureComponent {
     form.resetFields();
   }
 
-  handleEdit = () => {
-    // 保存按钮
-    
-    if(this.state.isEdit) {
-      showConfirm({
-        title: '确定保存吗？', 
-        onOk() {
-
-        },
-        onCancel() {
-
-        },
-      })
-    }
+  confirmOk = () => {
 
     this.setState({
       isEdit: !this.state.isEdit,
     })
+    this.handleSubmit();
+
+  }
+
+  handleEdit = () => {
+    const onOk = this.confirmOk;
+    if(this.state.isEdit) {
+      // 保存按钮
+      showConfirm({
+        title: '确定保存吗？', 
+        onOk,
+        onCancel() {
+        },
+      })
+    } else {
+      // 编辑按钮
+      this.setState({
+        isEdit: !this.state.isEdit,
+      })
+    }
   }
 
   handleReset = () => {
     const { form } = this.props;
     form.resetFields();
+  }
+
+  handleEditContract = (values) => {
+    console.log(values);
+    this.setState({
+      contractModal: true,
+      contractFormData: values,
+    })
+  }
+
+  handleAddContract = () => {
+    this.setState({
+      contractModal: !this.state.contractModal,
+    })
+  }
+
+  handleContractModalOk = (values) => {
+    this.setState({
+      contractModal: false,
+      contractFormData: {},
+    })
+  }
+
+  handleContractModalCancel = () => {
+    this.setState({
+      contractModal: false,
+      contractFormData: {},
+    })
   }
 
   renderBasic = ({ data = {} }) => {
@@ -413,9 +476,9 @@ export default class NewSource extends PureComponent {
   )}
 
   render() {
-    const { form, detail, sign, contract, loadingData } = this.props;
-    const { isEdit } = this.state;
-    const { getFieldDecorator } = form;
+    const { form, detail, sign, contract, loadingData, contactData } = this.props;
+    const { isEdit, contractFormData } = this.state;
+    const { contractModal } = this.state;
 
     return (
       <PageHeaderLayout
@@ -431,9 +494,11 @@ export default class NewSource extends PureComponent {
           title="联系记录"
           style={{marginTop: 20}}
           loading={loadingData}
-          extra={<a href="#">新增联系记录</a>}
+          extra={<a onClick={this.handleAddContract}>新增联系记录</a>}
         >
-          <RecordList />
+          <RecordList datasource={contactData} editFun={this.handleEditContract} />
+          <ContractModal data={contractFormData} visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleContractModalCancel} />
+          
         </Card>  
         <Card
           title="签约信息"

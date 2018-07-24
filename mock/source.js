@@ -47,7 +47,6 @@ const listData = Mock.mock({
 })
 
 // 详情
-
 const detailData = Mock.mock({
   code: '10001',
   data: {
@@ -71,8 +70,50 @@ const detailData = Mock.mock({
   },
 })
 
+// 联系记录
+const contactData = Mock.mock({
+  code: '10001',
+  data: {
+    'list|30': [{
+      'contract_type|1-5': 1,
+      'status|1-5': 1,
+      'contract_content': Random.title(),
+      person: 'genluo',
+      contract_price: '100',
+      contract_time: '2016-9-10',
+      create_time: '2016-2-5',
+    }],
+    pagination: {
+      current: 1,
+      // total: 30,
+    },
+  },
+})
+
+// 跟进记录
+const followData = Mock.mock({
+  code: '10001',
+  data: {
+    'list|10': [{
+      source_id: 1,
+      'status|1-5': 1,
+      source_name: Random.cname(),
+      source_num: '17784455445',
+      person: 'genluo',
+      'sechold_day|1-10': 1,
+      'contract_content|1-3': [Random.title()],
+    }],
+    pagination: {
+      current: 1,
+      total: 200,
+    },
+  },
+})
+
 export default {
   recentData,
   listData,
   detailData,
+  contactData,
+  followData,
 }

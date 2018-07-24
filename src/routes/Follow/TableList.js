@@ -9,8 +9,11 @@ import {
   DatePicker,
   Button,
   Table,
+  message,
+  Badge,
 } from 'antd'
 import { connect } from 'dva'
+import { Link } from "dva/router"
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import Styles from './TableList.less';
 
@@ -19,44 +22,89 @@ const { Option }  = Select;
 const { RangePicker } = DatePicker;
 
 
+
+const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
+const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
+
 const columns = [
-  { title: '资源名称', width: 150, dataIndex: 'name', key: 'name', fixed: 'left' },
-  { title: '资源状态', width: 150, dataIndex: 'age', key: 'age', fixed: 'left' },
-  { title: '联系方式', windth: 100, dataIndex: 'address', key: 'source_num', fixed: 'left' },
-  { title: '对接人', width: 100, dataIndex: 'address', key: 'person', fixed: 'left' },
-  { title: '未跟进天数', width: 150, dataIndex: 'address', key: 'sechold_day', fixed: 'left' },
-  { title: '最后一次联系', dataIndex: 'address', key: '4' },
-  { title: '倒数第二次联系', dataIndex: 'address', key: '5' },
-  { title: '倒数第三次联系', dataIndex: 'address', key: '6' },
+  { title: '资源名称', width: 100, dataIndex: 'source_name', key: 'source_name', fixed: 'left' },
+  { title: '资源状态',
+    width: 150,
+    dataIndex: 'status',
+    key: 'status',
+    fixed: 'left',
+    render(val) {
+      return <Badge status={statusMap[val]} text={status[val]} />;
+    },
+  },
+  { title: '联系电话', width: 180, dataIndex: 'source_num', key: 'source_num', fixed: 'left' },
+  { title: '对接人', width: 100, dataIndex: 'person', key: 'person', fixed: 'left' },
+  { title: '未跟进天数', width: 150, dataIndex: 'sechold_day', key: 'sechold_day', fixed: 'left', align: 'center' },
+  { title: '最后一次联系',
+    minWidth: 2000,
+    dataIndex: 'contract_content',
+    key: '4',
+  },
+  { title: '倒数第二次联系',
+    minWidth: 150,
+    dataIndex: 'contract_content',
+    key: '5',
+  },
+  { title: '倒数第三次联系',
+    minWidth: 150,
+    dataIndex: 'contract_content',
+    key: '6',
+  },
   {
     title: '操作',
     key: 'operation',
     fixed: 'right',
     width: 100,
-    render: () => <a href="#">详情</a>,
+    render: (val) => <Link to={`/resource/detail/${val}`}>详情</Link>,
   },
 ];
 
-const data = [{
-  key: '1',
-  name: 'John Brown',
-  age: 32,
-  address: 'New York Park',
-}, {
-  key: '2',
-  name: 'Jim Green',
-  age: 40,
-  address: 'London Park',
-}];
 
 
-@connect(() => {
-
-}) 
+@connect(({ loading, source }) => ({
+  followData: source.followData,
+  loading: loading.effects['source/fetchFollowData'],
+}))
 @Form.create()
 export default class TableList extends PureComponent {
+  
+  componentDidMount() {
+    const { dispatch } = this.props;
+
+    dispatch({
+      type: 'source/fetchFollowData',
+    })
+  }
+
+  handleSearch = e => {
+    // 设置查找
+    e.preventDefault();
+    const { form, dispatch } = this.props;
+
+    form.validateFields((err, fieldsValue) => {
+      if(err) return;
+      dispatch({
+        type: 'source/fetchFollowData',
+        payload: fieldsValue,
+      })
+    })
+  }
+
+  handleFormReset = () => {
+    const { form, dispatch } = this.props;
+    form.resetFields();
+    dispatch({
+      type: 'source/fetchFollowData',
+    })
+  }
+
   render() {
-    const { form } = this.props;
+    const { form, followData: { list, pagination }, loading } = this.props;
     const { getFieldDecorator } = form;
 
     return (
@@ -107,8 +155,8 @@ export default class TableList extends PureComponent {
                   </FormItem>
                 </Col>
                 <Col md={8} sm={24}>
-                  <Button type="primary" style={{marginRight: 20}}>查询</Button>
-                  <Button>重置</Button>
+                  <Button type="primary" style={{marginRight: 20}} onClick={this.handleSearch}>查询</Button>
+                  <Button onClick={this.handleFormReset}>重置</Button>
                 </Col>
               </Row>
             </Form>
@@ -116,8 +164,9 @@ export default class TableList extends PureComponent {
           <Table
             style={{marginTop: 40}}
             columns={columns}
-            dataSource={data}
-            scroll={{ x:650 }} 
+            dataSource={list}
+            scroll={{ x:1800 }}
+            loading={loading}
           />
         </Card>
       </PageHeaderLayout>

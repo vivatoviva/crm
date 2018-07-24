@@ -1,21 +1,32 @@
-import { queryRecent, querySource, getDetail } from '../services/source';
+import { queryFollowData, queryRecent, querySource, getDetail, getContractList } from '../services/source';
 
 
 export default {
   namespace: 'source',
 
   state: {
-    // 最近资源
+    // 资源详情
     detail: {
       detail: {},
       sign: {},
       contract: {},
     },
+    // 最近资源
     recentData: {
       list: [],
       pagination: {},
     },
+    // 搜优资源
     allData: {
+      list: [],
+      pagination: {},
+    },
+    // 资源联系记录
+    contract: {
+      list: [],
+    },
+    // 资源跟进
+    followData: {
       list: [],
       pagination: {},
     },
@@ -46,6 +57,20 @@ export default {
         payload: response.data,
       })
     },
+    *fetchContract({ payload }, { call, put }) {
+      const response = yield call(getContractList, payload);
+      yield put({
+        type: 'saveContract',
+        payload: response.data,
+      })
+    },
+    *fetchFollowData({ payload }, { call,   put }) {
+      const response = yield call(queryFollowData, payload);
+      yield put({
+        type: 'saveFollow',
+        payload: response.data,
+      })
+    } 
   },
 
   reducers: {
@@ -68,6 +93,18 @@ export default {
         ...state,
         detail: payload,
       }
-    }
+    },
+    saveContract(state, { payload }) {
+      return {
+        ...state,
+        contract:  payload,
+      }
+    },
+    saveFollow(state, { payload }) {
+      return {
+        ...state,
+        followData: payload,
+      }
+    },
   },
 }
