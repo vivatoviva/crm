@@ -355,6 +355,7 @@ export default class Analysis extends Component {
                       <Bar height={295} title="销售额趋势" data={salesData} />
                     </div>
                   </Col>
+                  {/* 问题 */}
                   <Col xl={8} lg={12} md={12} sm={24} xs={24}>
                     <div className={styles.salesRank}>
                       <h4 className={styles.rankingTitle}>门店销售额排名</h4>

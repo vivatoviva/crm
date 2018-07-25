@@ -152,7 +152,7 @@ export default class TableList extends PureComponent {
           <FormItem label="员工权限" {...formItemLayout}>
             {
               getFieldDecorator('employee_permission', {
-                initialValue: data.employee_permission,
+                initialValue: data.employee_permission ? data.employee_permission.toString() : undefined,
               })(
                 <Select placeholder="请选择员工权限">
                   <Option value="1">客服人员</Option>

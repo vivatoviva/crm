@@ -18,11 +18,13 @@ const columns = [{
   key: 'name',
 }, {
   title: '资源名称',
+  align: 'center',
   dataIndex: 'source_name',
   key: 'age',
 }, {
   title: '未来计划',
   dataIndex: 'source_planning',
+  align: 'center',
   key: 'source_planning',
 }, {
   title: '来访渠道',

@@ -2,7 +2,6 @@ import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
 import SourceTable from "components/SourceTable";
-import DispatchModal from './DispatchModal'
 import {
   Row,
   Col,
@@ -14,9 +13,10 @@ import {
   Button,
   DatePicker,
   Radio,
+  Modal,
   message,
-  Popconfirm,
 } from 'antd';
+import DispatchModal from './DispatchModal';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './TableList.less';
 
@@ -25,24 +25,40 @@ const FormItem = Form.Item;
 const { Option } = Select;
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
-
+const confirm = Modal.confirm;
 
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
+// 过滤不能删除的记录
+// const initList = data => {
+//   const formatData = [];
+//   for(const item of data) {
+//     formatData.push({
+//       ...item,
+//       disabled: !!item.person,
+//     })
+//   }
+//   return formatData;
+// }
 
-const initList = data => {
-  const formatData = [];
-  for(const item of data) {
-    formatData.push({
-      ...item,
-      disabled: !!item.person,
-    })
-  }
-  return formatData;
+
+function showDeleteConfirm() {
+  confirm({
+    title: 'Are you sure delete this task?',
+    content: 'Some descriptions',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    onOk() {
+      console.log('OK');
+    },
+    onCancel() {
+      console.log('Cancel');
+    },
+  });
 }
-
 
 @connect(({ loading, source }) => ({
   allData: source.allData,
@@ -55,6 +71,7 @@ export default class TableList extends PureComponent {
     expandForm: false,
     selectedRows: [],
     formValues: {},
+    deleteVisible: false,
   };
 
   componentDidMount() {
@@ -150,6 +167,9 @@ export default class TableList extends PureComponent {
     message.success('删除成功')
     dispatch({
       type: 'source/fetchList',
+      payload: {
+        deleteList,
+      },
     });
   }
 
@@ -178,6 +198,21 @@ export default class TableList extends PureComponent {
       visible: true,
     })
   }
+
+  
+ showDeleteConfirm = () => {
+  const deleteFun = this.handleDelete;
+  confirm({
+    title: '你确定删除这些资源吗?',
+    okText: '确定',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk: deleteFun,
+    onCancel() {
+      console.log('Cancel');
+    },
+  });
+}
 
   renderSimpleForm() {
     const { form } = this.props;
@@ -308,9 +343,9 @@ export default class TableList extends PureComponent {
       allData,
       loading,
     } = this.props;
-    const formatData = { ...allData, list: initList(allData.list) };
-
-    const { selectedRows, visible } = this.state;
+    const formatData = { ...allData };
+    const multipleSelection = true;
+    const { selectedRows, visible, deleteVisible } = this.state;
     return (
       <PageHeaderLayout title="">
         <Card bordered={false}>
@@ -323,9 +358,8 @@ export default class TableList extends PureComponent {
               {selectedRows.length > 0 && (
                 <Fragment>
                   <Button type="primary" onClick={this.handleDispatch}><Icon type="solution" /> 分派</Button>
-                  <Popconfirm title="确定删除这些资源吗？" onConfirm={this.handleDelete} okText="是" cancelText="否">
-                    <Button type="danger"><Icon type="delete" /> 删除</Button>
-                  </Popconfirm>,
+                  <Button type="danger" onClick={this.showDeleteConfirm}><Icon type="delete" /> 删除</Button>
+  
                 </Fragment>
               )}
               <div style={{ float: 'right' }}>
@@ -340,12 +374,12 @@ export default class TableList extends PureComponent {
             </div>
 
             <SourceTable
-              multipleSelection={true}
               selectedRows={selectedRows}
               loading={loading}
               data={formatData}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
+              multipleSelection={multipleSelection}
             />
           </div>
         </Card>

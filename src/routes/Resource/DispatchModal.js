@@ -9,10 +9,21 @@ import {
   InputNumber,
 } from "antd"
 
+
 const FormItem = Form.Item;
 
+
 function DispatchModal({ handleOk, handleCancel, visible, form }) {
-  console.log(form);
+  
+  
+  const getEmployeeName = id => {
+    return 'genluo'
+  }
+  const handleInputChange = value => {
+    const name = getEmployeeName(value);
+    form.setFieldsValue({source_name: name});
+    
+  }
   const { getFieldDecorator } = form;
   return (
     <Modal
@@ -28,21 +39,20 @@ function DispatchModal({ handleOk, handleCancel, visible, form }) {
       ]}
     >
       <Form layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+        <Row gutter={10}>
           <Col md={12} sm={24}>
             <FormItem label="员工编号">
               {getFieldDecorator('source_id')(
-                <InputNumber min={1} max={10} defaultValue={3} />
+                <InputNumber min={1} onChange={handleInputChange} />
               )}
             </FormItem>
           </Col>
           <Col md={12} sm={24}>          
             <FormItem>
-              {getFieldDecorator('source_name')(<Input placeholder="员工姓名" />)}
+              {getFieldDecorator('source_name')(<Input disabled />)}
             </FormItem>
           </Col>
         </Row>
-
       </Form>
     </Modal>
   )

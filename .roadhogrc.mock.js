@@ -76,19 +76,27 @@ const proxy = {
   'GET /api/profile/advanced': getProfileAdvancedData,
   'POST /api/login/account': (req, res) => {
     const { password, userName, type } = req.body;
-    if (password === '888888' && userName === 'admin') {
+    if (password === '888888' && userName === 'customer') {
       res.send({
         status: 'ok',
         type,
-        currentAuthority: 'admin',
+        currentAuthority: 'customer',
       });
       return;
     }
-    if (password === '123456' && userName === 'user') {
+    if (password === '88888888' && userName === 'seller') {
       res.send({
         status: 'ok',
         type,
-        currentAuthority: 'user',
+        currentAuthority: 'seller',
+      });
+      return;
+    }
+    if (password === '88888888' && userName === 'supervisor') {
+      res.send({
+        status: 'ok',
+        type,
+        currentAuthority: 'supervisor',
       });
       return;
     }
@@ -146,11 +154,11 @@ const proxy = {
   'GET /api/queryContract': contactData,
   'POST /api/query/follow': followData,
   // 资源信息（新方式）
-
   // 'GET /api/source/recent': recentData,
   // 'POST /api/source/all': listData,
   // 'GET /api/source/detail': detailData,
   // 'GET /api/source/contract': contractData,
+  // 'POST /api/query/follow': followData,
 
   //用户信息
   'GET /api/getUserInfo': userInfo,

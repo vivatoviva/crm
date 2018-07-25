@@ -12,16 +12,19 @@ import {
   Divider,
   Popconfirm,
   Badge,
+  AutoComplete,
 } from 'antd';
 import DescriptionList from 'components/DescriptionList';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import ContractModal from './ContactModal';
+import RecordModal from './RecordModal';
+
 
 
 const confirm = Modal.confirm;
 const { Option } = Select;
 const { Description } = DescriptionList;
-const FormItem = Form.Item;
+const InputGroup = Input.Group;
 
 // 面包屑信息
 const breadcrumbList = [{
@@ -195,8 +198,10 @@ export default class NewSource extends PureComponent {
 
   state = {
     isEdit: false,
+    recordModal: false,
+    recordFormData: {},
     contractModal: false,
-    contractFormData: {},
+    dataSource: [],
   }
 
   
@@ -270,29 +275,60 @@ export default class NewSource extends PureComponent {
   handleEditContract = (values) => {
     console.log(values);
     this.setState({
-      contractModal: true,
-      contractFormData: values,
+      recordModal: true,
+      recordFormData: values,
     })
   }
 
   handleAddContract = () => {
     this.setState({
-      contractModal: !this.state.contractModal,
+      recordModal: !this.state.recordModal,
     })
   }
 
-  handleContractModalOk = (values) => {
+  handlerecordModalOk = (values) => {
     this.setState({
-      contractModal: false,
-      contractFormData: {},
+      recordModal: false,
+      recordFormData: {},
+
     })
   }
 
-  handleContractModalCancel = () => {
+  handlerecordModalCancel = () => {
+    this.setState({
+      recordModal: false,
+      recordFormData: {},
+
+    })
+  }
+
+  handleContractModal = () => {
+    this.setState({
+      contractModal: true,
+    })
+  }
+
+  handleContractModalOk = values => {
+    const { dispatch } = this.props;
     this.setState({
       contractModal: false,
-      contractFormData: {},
     })
+  }
+
+  handleCOntractModalCancel = () => {
+    this.setState({
+      contractModal: false
+    })
+  }
+
+  handleChange = (value) => {
+    this.setState({
+      dataSource: !value || value.indexOf('@') >= 0 ? [] : [
+        `${value}@gmail.com`,
+        `${value}@163.com`,
+        `${value}@qq.com`,
+      ],
+    });
   }
 
   renderBasic = ({ data = {} }) => {
@@ -338,7 +374,7 @@ export default class NewSource extends PureComponent {
           <Description term="来访渠道">
             {isEdit ? getFieldDecorator('source_channel',{
               rules: [{ required: true, message: '请选择来访渠道' }],
-              initialValue: data.source_channel,
+              initialValue: data.source_channel.toString(),
             })(
               <Select
                 placeholder="请选择用户来访渠道"
@@ -413,8 +449,9 @@ export default class NewSource extends PureComponent {
   }
 
   renderSign = ({ data = {}}) => {
-    const { getFieldDecorator } = this.props.form;
-    const { isEdit } = this.state;
+    const { form } = this.props;
+    const { getFieldDecorator } = form;
+    const { isEdit, dataSource } = this.state;
 
     return (
       <Form>
@@ -457,9 +494,13 @@ export default class NewSource extends PureComponent {
           <Description term="签约人邮箱">
             {isEdit ? getFieldDecorator('sign_email', {
                 rules: [{ required: true, message: '请输入签约人邮箱' }],
-                initialValue: data.sign_email,     
+                initialValue: data.sign_email,
               })(
-                <Input placeholder="请输入签约人邮箱" />
+                <AutoComplete
+                  dataSource={dataSource}
+                  onChange={this.handleChange}
+                  placeholder="请输入签约人邮箱"
+                />
               ): <a href={`mailto:${data.sign_email}`}>{data.sign_email}</a>}
           </Description>
           <Description term="签约人地址">
@@ -477,8 +518,8 @@ export default class NewSource extends PureComponent {
 
   render() {
     const { form, detail, sign, contract, loadingData, contactData } = this.props;
-    const { isEdit, contractFormData } = this.state;
-    const { contractModal } = this.state;
+    const { isEdit, recordFormData } = this.state;
+    const { recordModal, contractModal } = this.state;
 
     return (
       <PageHeaderLayout
@@ -491,16 +532,6 @@ export default class NewSource extends PureComponent {
           <this.renderBasic data={detail} />
         </Card>
         <Card
-          title="联系记录"
-          style={{marginTop: 20}}
-          loading={loadingData}
-          extra={<a onClick={this.handleAddContract}>新增联系记录</a>}
-        >
-          <RecordList datasource={contactData} editFun={this.handleEditContract} />
-          <ContractModal data={contractFormData} visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleContractModalCancel} />
-          
-        </Card>  
-        <Card
           title="签约信息"
           style={{marginTop: 20}}
           loading={loadingData}
@@ -512,8 +543,19 @@ export default class NewSource extends PureComponent {
           title="合同信息"
           style={{marginTop: 20}}
           loading={loadingData}
+          extra={<a onClick={this.handleContractModal}>新建合同信息</a>}
         >
           <ContractData data={contract} />
+        </Card>
+        <Card
+          title="联系记录"
+          style={{marginTop: 20}}
+          loading={loadingData}
+          extra={<a onClick={this.handleAddContract}>新增联系记录</a>}
+        >
+          <RecordList datasource={contactData} editFun={this.handleEditContract} />
+          <ContractModal  visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleCOntractModalCancel} />
+          <RecordModal data={recordFormData} visible={recordModal} handleOk={this.handlerecordModalOk} handleCancel={this.handlerecordModalCancel} />
         </Card>
       </PageHeaderLayout>
     )

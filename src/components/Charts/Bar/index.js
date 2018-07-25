@@ -103,6 +103,7 @@ class Bar extends Component {
             <Axis name="y" min={0} />
             <Tooltip showTitle={false} crosshairs={false} />
             <Geom type="interval" position="x*y" color={color} tooltip={tooltip} />
+
           </Chart>
         </div>
       </div>
