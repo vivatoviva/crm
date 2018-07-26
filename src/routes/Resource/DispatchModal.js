@@ -21,7 +21,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form }) {
   }
   const handleInputChange = value => {
     const name = getEmployeeName(value);
-    form.setFieldsValue({source_name: name});
+    form.setFieldsValue({sourceName: name});
     
   }
   const { getFieldDecorator } = form;
@@ -49,7 +49,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form }) {
           </Col>
           <Col md={12} sm={24}>          
             <FormItem>
-              {getFieldDecorator('source_name')(<Input disabled />)}
+              {getFieldDecorator('sourceName')(<Input disabled />)}
             </FormItem>
           </Col>
         </Row>

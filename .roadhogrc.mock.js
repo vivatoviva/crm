@@ -76,7 +76,7 @@ const proxy = {
   'GET /api/profile/advanced': getProfileAdvancedData,
   'POST /api/login/account': (req, res) => {
     const { password, userName, type } = req.body;
-    if (password === '888888' && userName === 'customer') {
+    if (password === '88888888' && userName === 'customer') {
       res.send({
         status: 'ok',
         type,
@@ -148,22 +148,56 @@ const proxy = {
   },
   // mock数据
   // 资源信息(旧的)
-  'GET /api/queryRecent': recentData,
-  'POST /api/querySource': listData,
-  'GET /api/getDetail': detailData,
-  'GET /api/queryContract': contactData,
+  'GET /api/source/recent': recentData,
+  'POST /api/source/list': listData,
+  'GET /api/source/detail': detailData,
+  'GET /api/source/record/list': contactData,
   'POST /api/query/follow': followData,
-  // 资源信息（新方式）
-  // 'GET /api/source/recent': recentData,
-  // 'POST /api/source/all': listData,
-  // 'GET /api/source/detail': detailData,
-  // 'GET /api/source/contract': contractData,
-  // 'POST /api/query/follow': followData,
-
+  'POST /api/source/delete': {},
+  'POST /api/source/dispatch': {},
+  'POST /api/source/modify': detailData,
+  'POST /api/source/sign': {},
+  'POST /api/source/retreat': {},
+  'POST /api/source/record/operate': {
+    data: {
+      'recordId': 1,
+      'recordType': 1,
+      'status|1-5': 1,
+      'recordContent': '新增，mock数据',
+      person: 'genluo',
+      recordPrice: '100',
+      recordTime: 1280977330000,
+      createTime: 1280977330000,
+    }
+  },
+  'GET /api/source/record/delete': {},
+  'POST /api/source/contract/add': {},
+  'POST /api/source/add': {
+    data: {
+      sourceId: '1',
+    }
+  },
+  
   //用户信息
-  'GET /api/getUserInfo': userInfo,
+  'GET /api/user/info': userInfo,
   // 员工接口
-  'POST /api/queryEmployeeList': employeeList,
+  'POST /api/user/list': employeeList,
+  'POST /api/user/operate': {
+    data: {
+      "userId": "420000198901205236",
+      "userName": "冯秀英",
+      "userPermission": 1,
+      "userPhone": 177784455445,
+      "userProject_num": 20,
+      "userRank": 1
+    }
+  },
+  'POST /api/user/delete': {
+    code: '10001',
+    msg: '',
+    data: {}
+  },
+
 };
 
 export default (noProxy ? {} : delay(proxy, 1000));

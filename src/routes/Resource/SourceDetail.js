@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva'
+import moment from 'moment'
 import {
   Card,
   Form,
@@ -18,13 +19,12 @@ import DescriptionList from 'components/DescriptionList';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import ContractModal from './ContactModal';
 import RecordModal from './RecordModal';
+import Authorized from '../../utils/Authorized';
+import { getAuthority, getUserInfo } from '../../utils/authority';
 
-
-
-const confirm = Modal.confirm;
+const { confirm } = Modal;
 const { Option } = Select;
 const { Description } = DescriptionList;
-const InputGroup = Input.Group;
 
 // 面包屑信息
 const breadcrumbList = [{
@@ -51,21 +51,31 @@ function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
 }
 
 // 页面头部操作
-const action = ({handleEdit, isEdit, handleReset }) => {
+const action = ({handleEdit, isEdit, handleReset, handleSign, sourceType, handleRetreat }) => {
   return (
     <div>
       <Button type="primary" onClick={handleEdit}>{isEdit ? '保存' : '编辑'}</Button>
       {isEdit ? <Button onClick={handleReset}>重置</Button> :''}
-      <Button onClick={showConfirm.bind(null, {title: '确定签约吗？'})}>签约</Button>
-      <Button
-        type="danger"
-        onClick={showConfirm.bind(null, {
-          title: '确定退回这个资源吗？',
-          content: '这个资源将放回未分配中，所有有关此资源的联系信息将被清除！',
-          okType: 'danger',
-        })}
-      >退回
-      </Button>
+      <Authorized authority={['seller', 'supervisor']}>
+        {/* {
+          sourceType == '3' ? (
+            <Button disabled={true}>已签约</Button>
+          ): (
+            <Button onClick={showConfirm.bind(null, {title: '确定签约吗？', onOk: handleSign })}>签约</Button>
+          )
+        } */}
+        <Button
+          type="danger"
+          disabled={sourceType == '4' || sourceType == '3'}
+          onClick={showConfirm.bind(null, {
+            title: '确定退回这个资源吗？',
+            content: '这个资源将放回未分配中，所有有关此资源的联系信息将被清除！',
+            okType: 'danger',
+            onOk: handleRetreat,
+          })}
+        >{sourceType == '4' ? '已退回' : sourceType == '3' ? '已签约' : '退回'}
+        </Button>
+      </Authorized>
     </div>
   );
 }
@@ -77,14 +87,15 @@ const contractMap = ['', '微信', '电话', 'QQ', '上门', '邮箱', '无'];
 
 
 const columns = (editFun, deleteFun) => {
-  return [{
+  const columns =  [{
     title: '创建时间',
-    dataIndex: 'contract_time',
-    key: 'contract_time',
+    dataIndex: 'createTime',
+    key: 'createTime',
+    render: val => moment(val).format('YYYY-MM-DD'),
   }, {
     title: '联系类型',
-    dataIndex: 'contract_type',
-    key: 'contract_type',
+    dataIndex: 'recordType',
+    key: 'recordType',
     align: 'center',
     render: val => contractMap[val],
   }, {
@@ -97,74 +108,90 @@ const columns = (editFun, deleteFun) => {
   
   }, {
     title: '联系内容',
-    dataIndex: 'contract_content',
-    key: 'contract_content',
+    dataIndex: 'recordContent',
+    key: 'recordContent',
   }, {
     title: '对接人',
     dataIndex: 'person',
     key: 'person',
   }, {
     title: '预计签约金额',
-    dataIndex: 'contract_price',
-    key: 'contract_price',
+    dataIndex: 'recordPrice',
+    key: 'recordPrice',
     align: 'center',
     render: val => {
       return `￥ ${val}`
     },
   }, {
     title: '预计签约时间',
-    dataIndex: 'create_time',
-    key: 'create_time',
-  }, {
-    title: '操作',
-    dataIndex: 'action',
-    key: 'id',
-    align: 'center',
-    render: (val, record) => (
-      <>
-        <a onClick={() => editFun(record)}>编辑</a>
-        <Divider type="vertical" />
-        <Popconfirm title="确定删除本条联系记录吗？" okText="是" cancelText="否">
-          <a href="#">删除</a>
-        </Popconfirm>
-      </>
-    ),
+    dataIndex: 'recordTime',
+    key: 'recordTime',
+    render: val => moment(val).format('YYYY-MM-DD'),
   }]
+
+  
+  if(getAuthority() !== 'customer' ) {
+    columns.push({
+      title: '操作',
+      dataIndex: 'recordId',
+      key: 'id',
+      align: 'center',
+      render: (val, record) => (
+        <>
+          <a onClick={() => editFun(record)}>编辑</a>
+          <Divider type="vertical" />
+          <Popconfirm title="确定删除本条联系记录吗？" okText="是" cancelText="否" onConfirm={() => deleteFun(val)}>
+            <a>删除</a>
+          </Popconfirm>
+        </>
+      ),
+    })
+  }
+
+
+  return columns;
 };
 
 
 
   
 // 联系列表
-const RecordList = ({ datasource: data = [], editFun }) => (
-  <Table dataSource={data} columns={columns(editFun)} />
+const RecordList = ({ datasource: data = [], editFun, loading, deleteFun }) => (
+  <Table dataSource={data} columns={columns(editFun, deleteFun)} loading={loading} />
 )
 
 // 签约信息
-const ContractData = ({ data = {}}) => (
-  <DescriptionList size="large">
-    <Description term="合同类型">
-      {data.contract_type}
-    </Description>
-    <Description term="合同暗号">
-      {data.contract_signal}
-    </Description>
-    <Description term="合同名称">
-      {data.contract_name}
-    </Description>
-    <Description term="签约顾问">
-      {data.contract_consultant}
-    </Description>
-    <Description term="合同金额">
-      {`￥ ${data.contract_amount}`}
-    </Description>
-    <Description term="签约日期">
-      {data.contract_date}
-    </Description>
-  </DescriptionList>
+const ContractData = ({ data = [] }) => (
+  <>
+    {
+      data.map(item => (
+        <>
+          <DescriptionList size="large">
+            <Description term="合同类型">
+              {item.contractType}
+            </Description>
+            <Description term="合同名称">
+              {item.contractName}
+            </Description>
+            <Description term="合同暗号">
+              {item.contractSignal}
+            </Description>
+            <Description term="签约顾问">
+              {item.contractConsultant}
+            </Description>
+            <Description term="合同金额">
+              {`￥ ${item.contractAmount}`}
+            </Description>
+            <Description term="签约日期">
+              {moment(item.contractDate).format('YYYY-MM-DD')}
+            </Description>
+            <Divider />
+          </DescriptionList>
+        </>
+      ))
+    }
+  </>
 )
-
-
 
 
 function showDeleteConfirm() {
@@ -192,6 +219,8 @@ function showDeleteConfirm() {
   contactData: source.contract.list,
   loading: loading.models.rule,
   loadingData: loading.effects['source/getDetail'],
+  loadingEdit: loading.effects['source/editDetail'],
+  loadingRecord: loading.effects['source/editRecord', 'source/deleteRecord', 'source/addRecord'],
 }))
 @Form.create()
 export default class NewSource extends PureComponent {
@@ -220,21 +249,6 @@ export default class NewSource extends PureComponent {
     })
   }
 
-
-  handleSubmit = () => {
-    const { form } = this.props;
-    const { validateFieldsAndScroll } = form;
-    validateFieldsAndScroll((error, values) => {
-      if(!error) {
-        console.log('表单数据', values)
-        message.success('保存成功')
-      } else {
-        console.log('错误')
-        message.error('保存失败')
-      }
-    })
-  }
-
   handleFormReset = () => {
     const { form } = this.props;
     form.resetFields();
@@ -245,7 +259,19 @@ export default class NewSource extends PureComponent {
     this.setState({
       isEdit: !this.state.isEdit,
     })
-    this.handleSubmit();
+    const { form, dispatch } = this.props;
+    const { validateFieldsAndScroll } = form;
+    validateFieldsAndScroll((error, values) => {
+      if(!error) {
+        dispatch({
+          type: 'source/editDetail',
+          payload: values,
+        })
+        message.success('保存成功')
+      } else {
+        message.error('保存失败')
+      }
+    })
 
   }
 
@@ -272,8 +298,7 @@ export default class NewSource extends PureComponent {
     form.resetFields();
   }
 
-  handleEditContract = (values) => {
-    console.log(values);
+  handleEditContract = (values) => {-
     this.setState({
       recordModal: true,
       recordFormData: values,
@@ -286,19 +311,33 @@ export default class NewSource extends PureComponent {
     })
   }
 
-  handlerecordModalOk = (values) => {
+  handlerecordModalOk = values => {
+    const { dispatch } = this.props;
+    const { recordFormData } = this.state;
+    values = { ...recordFormData, ...values };
+
+    console.log('数据', values);
     this.setState({
       recordModal: false,
       recordFormData: {},
-
     })
+    if(values.recordId) {
+      dispatch({
+        type: 'source/editRecord',
+        payload: values,
+      })
+    } else {
+      dispatch({
+        type: 'source/addRecord',
+        payload: values,
+      })
+    }
   }
 
   handlerecordModalCancel = () => {
     this.setState({
       recordModal: false,
       recordFormData: {},
-
     })
   }
 
@@ -312,6 +351,10 @@ export default class NewSource extends PureComponent {
     const { dispatch } = this.props;
     this.setState({
       contractModal: false,
+    })
+    dispatch({
+      type: 'source/addContract',
+      payload: values,
     })
   }
 
@@ -331,6 +374,37 @@ export default class NewSource extends PureComponent {
     });
   }
 
+  // 签约
+  handleSign = () => {
+    const { detail, dispatch } = this.props;
+    dispatch({
+      type: 'source/signSource',
+      payload: detail.ourceId,
+    })
+  }
+
+  handleRetreat = () => {
+    const { detail, dispatch } = this.props;
+    dispatch({
+      type: 'source/retreatSource',
+      payload: detail.ourceId,
+    })
+  }
+
+  handleRecordModal = () => {
+    this.setState({
+      recordModal: true,
+    })
+  }
+
+  handleDeleteRecord = recordId => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'source/deleteRecord',
+      payload: recordId,
+    });
+  }
+
   renderBasic = ({ data = {} }) => {
     const { form } = this.props;
     const { isEdit } = this.state;
@@ -339,16 +413,16 @@ export default class NewSource extends PureComponent {
       <Form>
         <DescriptionList size="large" >
           <Description term="资源名称">
-            {isEdit ? getFieldDecorator('source_name', {
+            {isEdit ? getFieldDecorator('sourceName', {
                 rules: [{ required: true, message: '请选择用户是否回国' }],
-                initialValue: data.source_name,
+                initialValue: data.sourceName,
                 
-            })(<Input placeholder="请输入用户名称" />) : data.source_name}
+            })(<Input placeholder="请输入用户名称" />) : data.sourceName}
           </Description>
           <Description term="是否回国">
-            {isEdit ? getFieldDecorator('source_comeBack', {
+            {isEdit ? getFieldDecorator('sourceComeBack', {
               rules: [{ required: true, message: '请选择用户是否回国' }],
-              initialValue: data.source_comeBack,
+              initialValue: data.sourceComeBack,
             })(
               <Select
                 placeholder="请选择用户是否回国"
@@ -356,12 +430,12 @@ export default class NewSource extends PureComponent {
                 <Option value="1">是</Option>
                 <Option value="2">否</Option>
               </Select>
-            ) : Number(data.source_comeBack) === 1 ? '是' : '否'}
+            ) : Number(data.sourceComeBack) === 1 ? '是' : '否'}
           </Description>
           <Description term="未来规划">
-            {isEdit ? getFieldDecorator('source_planning', {
+            {isEdit ? getFieldDecorator('sourcePlanning', {
               rules: [{ required: true, message: '请选择用户未来规划' }],
-              initialValue: data.source_planning,
+              initialValue: data.sourcePlanning,
             })(
               <Select
                 placeholder="请选择用户未来规划"
@@ -369,12 +443,12 @@ export default class NewSource extends PureComponent {
                 <Option value="1">求学</Option>
                 <Option value="2">就业</Option>
               </Select>
-            ) : data.source_planning}
+            ) : data.sourcePlanning}
           </Description>
           <Description term="来访渠道">
-            {isEdit ? getFieldDecorator('source_channel',{
+            {isEdit ? getFieldDecorator('sourceChannel',{
               rules: [{ required: true, message: '请选择来访渠道' }],
-              initialValue: data.source_channel.toString(),
+              initialValue: data.sourceChannel.toString(),
             })(
               <Select
                 placeholder="请选择用户来访渠道"
@@ -385,28 +459,28 @@ export default class NewSource extends PureComponent {
                 <Option value="4">市场</Option>
                 <Option value="5">老带新</Option>
               </Select>
-            ):channel[data.source_channel]}
+            ):channel[data.sourceChannel]}
           </Description>
           <Description term="就读院校">
-            {isEdit ? getFieldDecorator('source_school', {
+            {isEdit ? getFieldDecorator('sourceSchool', {
               rules: [{ required: true, message: '请填写就读院校' }],
-              initialValue: data.source_school,
+              initialValue: data.sourceSchool,
             })(
               <Input placeholder="请填写就读院校" />
-            ):data.source_school}
+            ):data.sourceSchool}
           </Description>
           <Description term="就读专业">
-            {isEdit ?  getFieldDecorator('source_profession', {
+            {isEdit ?  getFieldDecorator('sourceProfession', {
               rules: [{ required: true, message: '请填写就读专业' }],
-              initialValue: data.source_profession,
+              initialValue: data.sourceProfession,
             })(
               <Input placeholder="请填写就读专业" />
-            ) : data.source_profession}
+            ) : data.sourceProfession}
           </Description>
           <Description term="就读年级">
-            {isEdit ? getFieldDecorator('source_grade', {
+            {isEdit ? getFieldDecorator('sourceGrade', {
               rules: [{ required: true, message: '请选择就读年级' }],
-              initialValue: data.source_grade,
+              initialValue: data.sourceGrade,
             })(
               <Select
                 placeholder="请选择就读年级"
@@ -414,34 +488,34 @@ export default class NewSource extends PureComponent {
                 <Option value="2016">2016</Option>
                 <Option value="2017">2017</Option>
               </Select>
-            ) :data.source_grade}
+            ) :data.sourceGrade}
           </Description>
           <Description term="联系电话">
-            {isEdit ? getFieldDecorator('source_phone',{
+            {isEdit ? getFieldDecorator('sourcePhone',{
               rules: [{ required: true, message: '请输入用户电话' }],
-              initialValue: data.source_phone,
+              initialValue: data.sourcePhone,
             })(
               <Input placeholder="请输入用户电话" />
-            ) : data.source_phone}
+            ) : data.sourcePhone}
           </Description>
           <Description term="QQ">
-            {isEdit ? getFieldDecorator('source_qq', {
+            {isEdit ? getFieldDecorator('sourceQq', {
               rules: [{ required: true, message: '请输入QQ号码' }],
-              initialValue: data.source_qq,
+              initialValue: data.sourceQq,
             })(
               <Input placeholder="请输入QQ号码" />
-            ) : <a href={`tencent://message/?Menu=yes&uin=${data.source_qq}`} target="_blank">
-                  {data.source_qq}
+            ) : <a href={`tencent://message/?Menu=yes&uin=${data.sourceQq}`} target="_blank">
+                  {data.sourceQq}
                 </a>
             }
           </Description>
           <Description term="微信">
-            {isEdit ? getFieldDecorator('source_wei', {
+            {isEdit ? getFieldDecorator('sourceWx', {
               rules: [{ required: true, message: '请输入微信号码' }],
-              initialValue: data.source_wei,
+              initialValue: data.sourceWx,
             })(
               <Input placeholder="请输入微信号码" />
-            ) : data.source_wei}
+            ) : data.sourceWx}
           </Description>
         </DescriptionList>
       </Form>
@@ -451,65 +525,67 @@ export default class NewSource extends PureComponent {
   renderSign = ({ data = {}}) => {
     const { form } = this.props;
     const { getFieldDecorator } = form;
-    const { isEdit, dataSource } = this.state;
-
+    let { isEdit, dataSource } = this.state;
+    // 权限拦截
+    if(getAuthority() === 'customer') isEdit = false;
+    
     return (
       <Form>
         <DescriptionList size="large">
           <Description term="签约人名称">
-            {isEdit ? getFieldDecorator('sign_name', {
+            {isEdit ? getFieldDecorator('signName', {
               rules: [{ required: true, message: '请输入微信号码' }],
-              initialValue: data.sign_name,
+              initialValue: data.signName,
             })(
               <Input placeholder="签约人名称" />  
-            ):data.sign_name}
+            ):data.signName}
           </Description>
           <Description term="签约人手机">
-            {isEdit ?getFieldDecorator('sign_phone', {
+            {isEdit ?getFieldDecorator('signPhone', {
               rules: [{ required: true, message: '请输入签约人手机号码？' }],
-              initialValue: data.sign_phone,              
+              initialValue: data.signPhone,              
             })(
               <Input placeholder="签约人手机" />
-            ) : data.sign_phone}
+            ) : data.signPhone}
           </Description>
           <Description term="证件类型">
-            {isEdit ? getFieldDecorator('sign_type', {
+            {isEdit ? getFieldDecorator('signType', {
                rules: [{ required: true, message: '请输入签约人手机号码？' }],
-               initialValue: data.sign_type,               
+               initialValue: data.signType.toString(),               
             })(
               <Select>
                 <Option value="1">身份证</Option>
                 <Option value="2">其他证件</Option>
               </Select>
-            ) :data.sign_type}
+            ) :data.signType}
           </Description>
           <Description term="签约人证件号码">
-            {isEdit ? getFieldDecorator('sign_type_num', {
+            {isEdit ? getFieldDecorator('signTypeNum', {
               rules: [{ required: true, message: '请输入签约人证件号码' }],
-              initialValue: data.sign_type,     
+              initialValue: data.signType,     
             })(
               <Input placeholder="请输入签约人证件号码？" />
-            ): data.sign_type_num}
+            ): data.signTypeNum}
           </Description>
           <Description term="签约人邮箱">
-            {isEdit ? getFieldDecorator('sign_email', {
+            {isEdit ? getFieldDecorator('signEmail', {
                 rules: [{ required: true, message: '请输入签约人邮箱' }],
-                initialValue: data.sign_email,
+                initialValue: data.signEmail,
               })(
                 <AutoComplete
                   dataSource={dataSource}
                   onChange={this.handleChange}
                   placeholder="请输入签约人邮箱"
                 />
-              ): <a href={`mailto:${data.sign_email}`}>{data.sign_email}</a>}
+              ): <a href={`mailto:${data.signEmail}`}>{data.signEmail}</a>}
           </Description>
           <Description term="签约人地址">
-            {isEdit ? getFieldDecorator('sign_address', {
+            {isEdit ? getFieldDecorator('signAddress', {
                 rules: [{ required: true, message: '请输入签约人地址' }],
-                initialValue: data.sign_address,     
+                initialValue: data.signAddress,     
               })(
                 <Input placeholder="请输入签约人地址" />
-              ): data.sign_address}
+              ): data.signAddress}
 
           </Description>
         </DescriptionList>
@@ -517,24 +593,31 @@ export default class NewSource extends PureComponent {
   )}
 
   render() {
-    const { form, detail, sign, contract, loadingData, contactData } = this.props;
+    const { form, detail, sign, contract, loadingData, contactData, loadingEdit, loadingRecord } = this.props;
     const { isEdit, recordFormData } = this.state;
     const { recordModal, contractModal } = this.state;
-
+    console.log(contract);
     return (
       <PageHeaderLayout
         title="详细信息"
         breadcrumbList={breadcrumbList}
-        action={action({ handleEdit: this.handleEdit, isEdit, handleReset: this.handleReset })}
+        action={action({
+          handleEdit: this.handleEdit,
+          isEdit,
+          handleReset: this.handleReset,
+          handleSign: this.handleSign,
+          sourceType: detail.type,
+          handleRetreat: this.handleRetreat,
+        })}
         loading={loadingData}
       >
-        <Card title="基本信息" loading={loadingData}>
+        <Card title="基本信息" loading={loadingData || loadingEdit}>
           <this.renderBasic data={detail} />
         </Card>
         <Card
           title="签约信息"
           style={{marginTop: 20}}
-          loading={loadingData}
+          loading={loadingData || loadingEdit}
           // extra={<a onClick={showConfirm.bind(null, {title: '确定签约吗？'})}>签约</a>}
         >
           <this.renderSign data={sign} />
@@ -543,7 +626,11 @@ export default class NewSource extends PureComponent {
           title="合同信息"
           style={{marginTop: 20}}
           loading={loadingData}
-          extra={<a onClick={this.handleContractModal}>新建合同信息</a>}
+          extra={(
+            <Authorized authority={['seller', 'supervisor']}>
+              <a onClick={this.handleContractModal}>新建合同信息</a>
+            </Authorized>
+          )}
         >
           <ContractData data={contract} />
         </Card>
@@ -551,9 +638,13 @@ export default class NewSource extends PureComponent {
           title="联系记录"
           style={{marginTop: 20}}
           loading={loadingData}
-          extra={<a onClick={this.handleAddContract}>新增联系记录</a>}
+          extra={(
+            <Authorized authority={['seller', 'supervisor']}>
+              <a onClick={this.handleRecordModal}>新增联系记录</a>
+            </Authorized>
+          )}
         >
-          <RecordList datasource={contactData} editFun={this.handleEditContract} />
+          <RecordList loading={loadingRecord} datasource={contactData} editFun={this.handleEditContract} deleteFun={this.handleDeleteRecord} />
           <ContractModal  visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleCOntractModalCancel} />
           <RecordModal data={recordFormData} visible={recordModal} handleOk={this.handlerecordModalOk} handleCancel={this.handlerecordModalCancel} />
         </Card>

@@ -23,7 +23,7 @@ const { RangePicker } = DatePicker;
 const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
 const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
 const columns = [
-  { title: '资源名称', width: 100, dataIndex: 'source_name', key: 'source_name', fixed: 'left' },
+  { title: '资源名称', width: 100, dataIndex: 'sourceName', key: 'sourceName', fixed: 'left' },
   { title: '资源状态',
     width: 150,
     dataIndex: 'status',
@@ -33,22 +33,22 @@ const columns = [
       return <Badge status={statusMap[val]} text={status[val]} />;
     },
   },
-  { title: '联系电话', width: 180, dataIndex: 'source_num', key: 'source_num', fixed: 'left' },
+  { title: '联系电话', width: 180, dataIndex: 'sourceNum', key: 'sourceNum', fixed: 'left' },
   { title: '对接人', width: 100, dataIndex: 'person', key: 'person', fixed: 'left' },
-  { title: '未跟进天数', width: 150, dataIndex: 'sechold_day', key: 'sechold_day', fixed: 'left', align: 'center' },
+  { title: '未跟进天数', width: 150, dataIndex: 'secholdDay', key: 'secholdDay', fixed: 'left', align: 'center' },
   { title: '最后一次联系',
     minWidth: 2000,
-    dataIndex: 'contract_content',
+    dataIndex: 'contractContent',
     key: '4',
   },
   { title: '倒数第二次联系',
     minWidth: 150,
-    dataIndex: 'contract_content',
+    dataIndex: 'contractContent',
     key: '5',
   },
   { title: '倒数第三次联系',
     minWidth: 150,
-    dataIndex: 'contract_content',
+    dataIndex: 'contractContent',
     key: '6',
   },
   {
@@ -111,7 +111,7 @@ export default class TableList extends PureComponent {
               <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
                 <Col md={8} sm={24}>
                   <FormItem label="资源名称">
-                    {getFieldDecorator('source_name')(
+                    {getFieldDecorator('sourceName')(
                       <Input placeholder="请输入用户名称" />
                     )}
                   </FormItem>

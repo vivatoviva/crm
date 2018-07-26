@@ -3,18 +3,25 @@ import Mock from 'mockjs';
 const { Random } = Mock;
 
 const basic = Mock.mock({
-  employee_id: Random.id(),
-  employee_name: Random.cname(),
-  'employee_permission|1-3': 1, // 1 客服人员 2销售人员 3销售主管
-  employee_phone: 177784455445,
-  employee_project_num: 20,
-  employee_rank: 1,
+  'userId|1-100': 1,
+  userName: Random.cname(),
+  'userPermission|1-3': 1, // 1 客服人员 2销售人员 3销售主管
+  userPhone: 177784455445,
+  userProject_num: 20,
+  userRank: 1,
 })
 
 const employeeList = Mock.mock({
   code: '100001',
   data: {
-    "list|10": [basic],
+    "list|10": [{
+      'userId|1-100': 1,
+      userName: Random.cname(),
+      'userPermission|1-3': 1, // 1 客服人员 2销售人员 3销售主管
+      userPhone: 177784455445,
+      'userProject_num|20-100': 20,
+      'userRank|1-100': 1,
+    }],
     pagination: {
       current: 1,
       total: 100,

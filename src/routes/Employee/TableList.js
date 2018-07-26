@@ -11,6 +11,7 @@ import {
   Icon,
   Divider,
   Popconfirm,
+  InputNumber,
   Modal,
 } from 'antd'
 import { connect } from 'dva'
@@ -23,20 +24,21 @@ const permissionMap = ['', '客服人员', '销售人员', '销售主管'];
 
 const columns = ({ editFun, deleteFun }) => {
   return [
-    { title: '员工编号', dataIndex: 'employee_id', key: 'employee_id' },
-    { title: '员工姓名', dataIndex: 'employee_name', key: 'employee_name', align: 'center' },
-    { title: '权限', dataIndex: 'employee_permission', key: 'employee_permission', align: 'center', render: val => permissionMap[val] },
-    { title: '联系电话', dataIndex: 'employee_phone', key: 'employee_phone' },
-    { title: '项目数', dataIndex: 'employee_project_num', key: 'employee_project_num',align: 'center' },
-    { title: '团队内排名', dataIndex: 'employee_rank', key: 'employee_rank', align: 'center' },
+    { title: '员工编号', dataIndex: 'userId', key: 'userId' },
+    { title: '员工姓名', dataIndex: 'userName', key: 'userName', align: 'center' },
+    { title: '权限', dataIndex: 'userPermission', key: 'userPermission', align: 'center', render: val => permissionMap[val] },
+    { title: '联系电话', dataIndex: 'userPhone', key: 'userPhone' },
+    { title: '资源数', dataIndex: 'userProject_num', key: 'userProject_num',align: 'center' },
+    { title: '团队内排名', dataIndex: 'userRank', key: 'userRank', align: 'center' },
     {
       title: '操作',
-      key: 'operation',
+      dataIndex: 'userId',
+      key: 'userId',
       render: (value, recods) => (
         <>
           <a onClick={() => editFun(recods)}>编辑</a>
           <Divider type="vertical" />
-          <Popconfirm title="确定删除这个员工吗？" okText="确定" cancelText="取消">
+          <Popconfirm title="确定删除这个员工吗？" okText="确定" cancelText="取消" onConfirm={() => deleteFun(value)}>
             <a href="#">删除</a>
           </Popconfirm>
         </>
@@ -58,7 +60,7 @@ const formItemLayout = {
 };
 
 @connect(({ employee, loading }) => ({
-  loading: loading.effects['employee/fetchList'],
+  loading: loading.models.employee,
   employeeData: employee.data,
 }))
 @Form.create()
@@ -82,16 +84,28 @@ export default class TableList extends PureComponent {
     this.setState({
       employeeData: values,
       addVisible: true,
+      pagination: {
+        current: 1,
+        total: 10,
+        pageSize: 10,
+      },
     })
   }
 
   handleSearch = e => {
     e.preventDefault();
     const { form, dispatch } = this.props;
+    const { pagination } = this.state;
     form.validateFields((err, fieldValues) => {
-      if(err) return;
+      const { user_name, user_id } = fieldValues;
       dispatch({
         type: 'employee/fetchList',
+        payload: {
+          ...fieldValues,
+          ...pagination,
+          userName: user_name,
+          userId: user_id,
+        },
       })
     })
   }
@@ -110,12 +124,33 @@ export default class TableList extends PureComponent {
     this.setState({
       addVisible: !addVisible,
     })
+
   }
 
   handleAddOk = () => {
-    this.setState({
-      addVisible: false,
-      employeeData: {},
+    const { form, dispatch, employeeData: { pagination} } = this.props;
+    const { employeeData: { userId } } = this.state;
+
+    form.validateFields((err, values) => {
+      if(err) return;
+      if(userId) {
+        values.userId = userId;
+      }
+      dispatch({
+        type: 'employee/operate',
+        payload: {
+          formValues: values,
+          searchValues: {
+            ...pagination,
+            userId: values.user_id,
+            userName: values.user_name,
+          },
+        },
+      })
+      this.setState({
+        addVisible: false,
+        employeeData: {},
+      })
     })
   }
 
@@ -125,6 +160,21 @@ export default class TableList extends PureComponent {
       employeeData: {},
     })
   }
+
+  handleDelete = userId => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'employee/delete',
+      payload: userId,
+    })
+  }
+
+  handleTableChange = pagination => {
+    this.setState({
+      pagination,
+    });
+  }
+
 
   renderAddModal = () => {
     const { addVisible, employeeData: data } = this.state;
@@ -141,8 +191,9 @@ export default class TableList extends PureComponent {
         <Form>
           <FormItem label="员工姓名" {...formItemLayout}>
             {
-              getFieldDecorator('employee_name', {
-                initialValue: data.employee_name,
+              getFieldDecorator('userName', {
+                rules: [{ required: true, message: '员工姓名' }],
+                initialValue: data.userName,
               })(
                 <Input placeholder="请输入员工姓名" />
               )
@@ -151,8 +202,9 @@ export default class TableList extends PureComponent {
 
           <FormItem label="员工权限" {...formItemLayout}>
             {
-              getFieldDecorator('employee_permission', {
-                initialValue: data.employee_permission ? data.employee_permission.toString() : undefined,
+              getFieldDecorator('userPermission', {
+                rules: [{ required: true, message: '请选择员工权限' }],
+                initialValue: data.userPermission ? data.userPermission.toString() : '1',
               })(
                 <Select placeholder="请选择员工权限">
                   <Option value="1">客服人员</Option>
@@ -164,8 +216,9 @@ export default class TableList extends PureComponent {
           </FormItem>
           <FormItem label="联系电话" {...formItemLayout}>
             {
-              getFieldDecorator('employee_phone', {
-                initialValue: data.employee_phone,
+              getFieldDecorator('userPhone', {
+                rules: [{ required: true, message: '请输入员工联系电话' }],
+                initialValue: data.userPhone,
               })(
                 <Input placeholder="请输入员工联系电话" />
               )
@@ -189,22 +242,15 @@ export default class TableList extends PureComponent {
               <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
                 <Col md={8} sm={24}>
                   <FormItem label="员工姓名">
-                    {getFieldDecorator('source_name')(
+                    {getFieldDecorator('user_name')(
                       <Input placeholder="请输入用户名称" />
                     )}
                   </FormItem>
                 </Col>
                 <Col md={8} sm={24}>
                   <FormItem label="员工编号">
-                    {getFieldDecorator('status')(
-                      <Select placeholder="请选择" style={{ width: '100%' }}>
-                        <Option value="0">全部</Option>
-                        <Option value="1">1</Option>
-                        <Option value="2">2</Option>
-                        <Option value="3">3</Option>
-                        <Option value="4">4</Option>
-                        <Option value="5">5</Option>
-                      </Select>
+                    {getFieldDecorator('user_id')(
+                      <InputNumber style={{width: '100%'}} min={1} />
                     )}
                   </FormItem>
                 </Col>
@@ -226,8 +272,10 @@ export default class TableList extends PureComponent {
           <Table
             loading={loading}
             style={{marginTop: 40}}
-            columns={columns({ editFun: this.handleEdit })}
+            columns={columns({ editFun: this.handleEdit, deleteFun: this.handleDelete })}
             dataSource={employeeData.list}
+            pagination={employeeData.pagination}
+            onChange={this.handleTableChange}
           />
         </Card>
       </PageHeaderLayout>

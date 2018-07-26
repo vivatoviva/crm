@@ -44,8 +44,9 @@ function warning() {
 export default class NewSource extends PureComponent {
   
   isHaveContract = values => {
-    const { contractPhone, contractQq, contractWx } = values;
-    return contractPhone||contractQq||contractWx;
+    const { sourcePhone, sourceQq, sourceWx } = values;
+    console.log('参数', values);
+    return sourcePhone||sourceQq||sourceWx;
   }
 
   handleSubmit = () => {
@@ -56,13 +57,22 @@ export default class NewSource extends PureComponent {
         // 检测是不是没有填写联系方式
         if(!this.isHaveContract(values)) return warning();
         message.success("添加成功");
-        dispatch(routerRedux.push(`/resource/detail/44`));
+        dispatch({
+          type: 'source/addSource',
+          payload: {
+            values,
+            comeBack(id) {
+              dispatch(routerRedux.push(`/resource/detail/${id}`));
+            },
+          },
+        })
+        
       } else {
-        message.error('错误');
+        // message.error('错误');
       }
     })
   }
-
+  
   handleFormReset = () => {
     const { form } = this.props;
     form.resetFields();
@@ -85,7 +95,7 @@ export default class NewSource extends PureComponent {
             <Row gutter={16}>
               <Col className="gutter-row" lg={6} md={12} sm={24}>
                 <FormItem label="资源名称">
-                  {getFieldDecorator('source_name', {
+                  {getFieldDecorator('sourceName', {
                       rules: [{ required: true, message: '请输入用户名称' }],
                     })(
                       <Input placeholder="请输入用户名称" />
@@ -94,7 +104,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="是否回国">
-                  {getFieldDecorator('source_comeBack', {
+                  {getFieldDecorator('sourceComeBack', {
                       rules: [{ required: false, message: '请选择用户是否回国' }],
                     })(
                       <Select
@@ -108,7 +118,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="未来规划">
-                  {getFieldDecorator('source_planning', {
+                  {getFieldDecorator('sourcePlanning', {
                       rules: [{ required: false, message: '请选择用户未来规划' }],
                     })(
                       <Select
@@ -122,7 +132,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" lg={6} md={12} sm={24}>
                 <FormItem label="来访渠道">
-                  {getFieldDecorator('source_channel', {
+                  {getFieldDecorator('sourceChannel', {
                       rules: [{ required: false, message: '请选择来访渠道' }],
                     })(
                       <Select
@@ -147,7 +157,7 @@ export default class NewSource extends PureComponent {
             <Row gutter={16}>       
               <Col className="gutter-row" lg={6} md={12} sm={24}>
                 <FormItem label="就读院校">
-                  {getFieldDecorator('source_school', {
+                  {getFieldDecorator('sourceSchool', {
                       rules: [{ required: false, message: '请填写就读院校' }],
                     })(
                       <Input placeholder="请填写就读院校" />
@@ -156,7 +166,7 @@ export default class NewSource extends PureComponent {
               </Col> 
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="就读专业">
-                  {getFieldDecorator('source_profession', {
+                  {getFieldDecorator('sourceProfession', {
                       rules: [{ required: false, message: '请填写就读专业' }],
                     })(
                       <Input placeholder="请填写就读专业" />
@@ -165,7 +175,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="就读年级">
-                  {getFieldDecorator('source_grade', {
+                  {getFieldDecorator('sourceGrade', {
                       rules: [{ required: false, message: '请选择就读年级' }],
                     })(
                       <Select
@@ -185,7 +195,7 @@ export default class NewSource extends PureComponent {
             <Row gutter={16}>
               <Col className="gutter-row" lg={6} md={12} sm={24}>
                 <FormItem label="联系电话">
-                  {getFieldDecorator('source_phone', {
+                  {getFieldDecorator('sourcePhone', {
                       rules: [{ required: false, message: '请输入用户电话' }],
                     })(
                       <Input placeholder="请输入用户电话" />
@@ -194,7 +204,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="QQ">
-                  {getFieldDecorator('source_qq', {
+                  {getFieldDecorator('sourceQq', {
                       rules: [{ required: false, message: '请输入QQ号码' }],
                     })(
                       <Input placeholder="请输入QQ号码" />
@@ -203,7 +213,7 @@ export default class NewSource extends PureComponent {
               </Col>
               <Col className="gutter-row" xl={{ span: 6, offset: 2 }} lg={{ span: 8 }} md={{ span: 12 }} sm={24}>
                 <FormItem label="微信">
-                  {getFieldDecorator('source_wei', {
+                  {getFieldDecorator('sourceWx', {
                       rules: [{ required: false, message: '请输入微信号码' }],
                     })(
                       <Input placeholder="请输入微信号码" />

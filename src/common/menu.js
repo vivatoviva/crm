@@ -15,7 +15,7 @@ const menuData = [
     name: '资源跟进',
     icon: 'customer-service',
     path: 'follow',
-    authority: [ 'customer', 'supervisor'],
+    authority: [ 'seller', 'supervisor'],
   },
   {
     name: '员工管理',

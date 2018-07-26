@@ -1,5 +1,6 @@
 // 显示资源列表。有两种不同的显示风格
 import React, { PureComponent } from "react";
+import moment from 'moment';
 import { Link } from 'dva/router';
 import {
   Table,
@@ -8,28 +9,30 @@ import {
 import StandardTable from '../StandardTable';
 
 
+
 const status = ['全部', '长线用户', '深度用户', '潜在用户', '强烈意向', '联系不到']
 const statusMap = ['', 'success', 'processing', 'warning', 'error', 'default' ];
 const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
 // 表格单元
 const columns = [{
   title: '创建时间',
-  dataIndex: 'create_time',
+  dataIndex: 'createTime',
   key: 'name',
+  render: val => moment(val).format('YYYY-MM-DD'),
 }, {
   title: '资源名称',
   align: 'center',
-  dataIndex: 'source_name',
+  dataIndex: 'sourceName',
   key: 'age',
 }, {
   title: '未来计划',
-  dataIndex: 'source_planning',
+  dataIndex: 'sourcePlanning',
   align: 'center',
-  key: 'source_planning',
+  key: 'sourcePlanning',
 }, {
   title: '来访渠道',
-  dataIndex: 'source_channel',
-  key: 'source_channel',
+  dataIndex: 'sourceChannel',
+  key: 'sourceChannel',
   render: val => channel[val],
 }, {
   title: '资源状态',
@@ -57,7 +60,7 @@ const columns = [{
   },
 }, {
   title: '未跟进天数',
-  dataIndex: 'schedule_day',
+  dataIndex: 'scheduleDay',
   key: 'schedule_day',
   align: 'center',
 }, {

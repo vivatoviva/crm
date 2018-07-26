@@ -19,6 +19,18 @@ import {
 import DispatchModal from './DispatchModal';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './TableList.less';
+import Authorized from '../../utils/Authorized';
+import { getAuthority, getUserInfo } from '../../utils/authority';
+
+const authorityName = (function(){
+  switch(getAuthority()) {
+    case 'customer': return '客服人员';
+    case 'seller': return '销售人员';
+    case 'supervisor': return '销售主管';
+  }
+})()
+
+
 
 const { RangePicker } = DatePicker;
 const FormItem = Form.Item;
@@ -60,6 +72,7 @@ function showDeleteConfirm() {
   });
 }
 
+
 @connect(({ loading, source }) => ({
   allData: source.allData,
   loading: loading.models.source,
@@ -72,6 +85,7 @@ export default class TableList extends PureComponent {
     selectedRows: [],
     formValues: {},
     deleteVisible: false,
+    radioType: 'noDispatch',
   };
 
   componentDidMount() {
@@ -160,7 +174,6 @@ export default class TableList extends PureComponent {
   }
 
   handleDelete = () => {
-
     const { dispatch } = this.props;
     const { selectedRows } = this.state;
     const deleteList = selectedRows.map(item => item.source_id);
@@ -176,6 +189,9 @@ export default class TableList extends PureComponent {
   handleRadio = e => {
     const { dispatch } = this.props;
     const { target: { value }} = e;
+    this.setState({
+      radioType: value,
+    })
     dispatch({
       type: 'source/fetchList',
     })
@@ -214,7 +230,21 @@ export default class TableList extends PureComponent {
   });
 }
 
-  renderSimpleForm() {
+getDefaultValue = () => {
+  switch(authorityName) {
+    case '销售人员': {
+      this.setState({
+        radioType: 'alreadyDispatch',
+      })
+      return 'alreadyDispatch';
+    }
+    default : {
+      return 'noDispatch';
+    }
+  }
+}
+
+renderSimpleForm() {
     const { form } = this.props;
     const { getFieldDecorator } = form;
     return (
@@ -222,7 +252,7 @@ export default class TableList extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="资源名称">
-              {getFieldDecorator('source_name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('sourceName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -256,7 +286,7 @@ export default class TableList extends PureComponent {
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="资源名称">
-              {getFieldDecorator('source_name')(<Input placeholder="请输入" />)}
+              {getFieldDecorator('sourceName')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -266,7 +296,7 @@ export default class TableList extends PureComponent {
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="未来规划">
-              {getFieldDecorator('source_planning')(
+              {getFieldDecorator('sourcePlanning')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   <Option value="0">全部</Option>
                   <Option value="1">求学</Option>
@@ -277,7 +307,7 @@ export default class TableList extends PureComponent {
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="来访渠道">
-              {getFieldDecorator('source_channel')(
+              {getFieldDecorator('sourceChannel')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   <Option value="0">全部</Option>
                   <Option value="1">淘宝</Option>
@@ -303,13 +333,17 @@ export default class TableList extends PureComponent {
               )}
             </FormItem>
           </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="对接人">
-              {getFieldDecorator('person')(
-                <Input placeholder="请输入" />
-              )}
-            </FormItem>
-          </Col>
+          {
+            getAuthority() !== 'seller' ? (
+              <Col md={8} sm={24}>
+                <FormItem label="对接人">
+                  {getFieldDecorator('person')(
+                    <Input placeholder="请输入" />
+                  )}
+                </FormItem>
+              </Col>
+            ) : ''
+          }
           <Col md={16} sm={24}>
             <FormItem label="起止日期">
               {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
@@ -345,30 +379,41 @@ export default class TableList extends PureComponent {
     } = this.props;
     const formatData = { ...allData };
     const multipleSelection = true;
-    const { selectedRows, visible, deleteVisible } = this.state;
+    const { selectedRows, visible, deleteVisible, radioType } = this.state;
     return (
       <PageHeaderLayout title="">
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
-            <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleAdd()}>
-                新建
-              </Button>
+            <div className={styles.tableListOperator} style={{overflow: 'hidden'}}>
+              <Authorized authority={['customer', 'supervisor']}>
+                <Button icon="plus" type="primary" onClick={() => this.handleAdd()}>
+                  新建
+                </Button>
+              </Authorized>
+
               {selectedRows.length > 0 && (
                 <Fragment>
-                  <Button type="primary" onClick={this.handleDispatch}><Icon type="solution" /> 分派</Button>
+                  {
+                    radioType === 'noDispatch' ? <Button type="primary" onClick={this.handleDispatch}><Icon type="solution" /> 分派</Button> : ''
+                  }
+                  
                   <Button type="danger" onClick={this.showDeleteConfirm}><Icon type="delete" /> 删除</Button>
-  
                 </Fragment>
               )}
               <div style={{ float: 'right' }}>
-                <RadioGroup defaultValue="all" onChange={this.handleRadio}>
-                  <RadioButton value="all">全部</RadioButton>
-                  <RadioButton value="progress">未分派</RadioButton>
-                  <RadioButton value="waiting">已分派</RadioButton>
-                  <RadioButton value="signing">已签约</RadioButton>
-                  <RadioButton value="delete">被退回</RadioButton>
+                <RadioGroup defaultValue={this.getDefaultValue()} onChange={this.handleRadio}>
+                  <Authorized authority={[ 'customer', 'supervisor']}>
+                    <RadioButton value="noDispatch">未分派</RadioButton>
+                  </Authorized>
+                  <Authorized authority={[ 'seller', 'supervisor']}>
+                    <RadioButton value="alreadyDispatch">已分派</RadioButton>
+                    <RadioButton value="alreadySign">已签约</RadioButton>
+                  </Authorized>
+                  <Authorized authority={['customer', 'supervisor']}>
+                    <RadioButton value="delete">被退回</RadioButton>
+                  </Authorized>
+
                 </RadioGroup>                
               </div>
             </div>

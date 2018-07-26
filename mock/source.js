@@ -5,12 +5,12 @@ const { Random } = Mock;
 
 const basic = {
   'source_id|1-100': 1,
-  create_time: Random.date('yyyy-MM-dd'),
-  source_name: Random.cname(),
-  source_planning: '就业',
-  'source_channel|1-5': 1, // 1： 淘宝， 2 网站 ， 3 校园大使， 4 市场， 5 老带新
+  createTime: 1280977330000,
+  sourceName: Random.cname(),
+  sourcePlanning: '就业',
+  'sourceChannel|1-5': 1, // 1： 淘宝， 2 网站 ， 3 校园大使， 4 市场， 5 老带新
   'status|1-5': 1,
-  schedule_day: '5',
+  scheduleDay: '5',
   person() {
     const num = Random.integer(1,10);
     if(num%2 ===0 ) {
@@ -18,14 +18,15 @@ const basic = {
     }
     return ''
   },
-  phone_num: '17784455445',
-  source_phone: '17784455445', // 资源电话
-  source_comeBack: '1', // 是否回国
-  source_school: '重庆邮电大学',
-  source_profession: '信息管理与信息系统',
-  source_grade: '2016',
-  source_qq: '1461304646',
-  source_wei: '1461304646',
+  phoneNum: '17784455445',
+  sourcePhone: '17784455445', // 资源电话
+  sourceComeBack: '1', // 是否回国
+  sourceSchool: '重庆邮电大学',
+  sourceProfession: '信息管理与信息系统',
+  sourceGrade: '2016',
+  sourceQq: '1461304646',
+  sourceWx: '1461304646',
+  type: '1',
 }
 // 最近资源
 const recentData = Mock.mock({
@@ -53,21 +54,21 @@ const detailData = Mock.mock({
   data: {
     detail: basic,
     sign: {
-      sign_name: Random.cname(),
-      sign_phone: '17784455445',
-      sign_type: '身份证',
-      sign_type_num: Random.id(),
-      sign_email: Random.email(),
-      sign_address: Random.county(true),
+      signName: Random.cname(),
+      signPhone: '17784455445',
+      signType: '身份证',
+      signType_num: Random.id(),
+      signEmail: Random.email(),
+      signAddress: Random.county(true),
     },
-    contract: {
-      contract_type: '纸质合同',
-      contract_signal: Random.guid(),
-      contract_name: '合同名称',
-      contract_consultant: 'genluo',
-      contract_amount: 100,
-      contract_date: Random.date("yyyy-mm-dd"),
-    },
+    'contract|1-3': [{
+      contractType: '纸质合同',
+      contractSignal: Random.guid(),
+      contractName: '合同名称',
+      contractConsultant: 'genluo',
+      contractAmount: 100,
+      contractDate: 1280977330000,
+    }],
   },
 })
 
@@ -76,13 +77,14 @@ const contactData = Mock.mock({
   code: '10001',
   data: {
     'list|30': [{
-      'contract_type|1-5': 1,
+      'recordId|1-100': 1,
+      'recordType|1-5': 1,
       'status|1-5': 1,
-      'contract_content': Random.title(),
+      'recordContent': Random.title(),
       person: 'genluo',
-      contract_price: '100',
-      contract_time: '2016-9-10',
-      create_time: '2016-2-5',
+      recordPrice: '100',
+      recordTime: 1280977330000,
+      createTime: 1280977330000,
     }],
     pagination: {
       current: 1,
@@ -96,13 +98,13 @@ const followData = Mock.mock({
   code: '10001',
   data: {
     'list|10': [{
-      source_id: 1,
+      sourceId: 1,
       'status|1-5': 1,
-      source_name: Random.cname(),
-      source_num: '17784455445',
+      sourceName: Random.cname(),
+      sourceNum: '17784455445',
       person: 'genluo',
-      'sechold_day|1-10': 1,
-      'contract_content|1-3': [Random.title()],
+      'secholdDay|1-10': 1,
+      'contractContent|1-3': [Random.title()],
     }],
     pagination: {
       current: 1,

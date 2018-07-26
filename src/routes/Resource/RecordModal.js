@@ -5,9 +5,6 @@ import {
   Form,
   Button,
   Input,
-  Row,
-  Col,
-  InputNumber,
   Select,
   DatePicker,
 } from "antd"
@@ -29,16 +26,24 @@ const formItemLayout = {
 
 function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
   const { getFieldDecorator } = form;
+  const onOk = () => {
+    form.validateFields((err, values) => {
+      if(err) return;
+      values.recordTime = values.recordTime.unix() * 1000;
+      handleOk(values);
+    })
+  }
+
   return (
     <Modal
       visible={visible}
       title="新建联系记录"
-      onOk={handleOk}
+      onOk={onOk}
       onCancel={handleCancel}
       destroyOnClose={true}
       footer={[
         <Button key="back" onClick={handleCancel}>取消</Button>,
-        <Button key="submit" type="primary" loading={false} onClick={handleOk}>
+        <Button key="submit" type="primary" loading={false} onClick={onOk}>
           提交
         </Button>,
       ]}
@@ -46,7 +51,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
       <Form>
             <FormItem {...formItemLayout} label="资源状态">
               {getFieldDecorator('status', {
-                initialValue: data.status ? data.status.toString() : '',
+                initialValue: data.status ? data.status.toString() : '1',
               })(
                 <Select placeholder="请选择资源状态">
                   <Option value="1">长线用户</Option>
@@ -58,8 +63,8 @@ function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label="联系类型">
-              {getFieldDecorator('contract_type', {
-                initialValue: data.contract_type ? data.contract_type.toString() : null,
+              {getFieldDecorator('recordType', {
+                initialValue: data.recordType ? data.recordType.toString() : '2',
               })(
               <Select placeholder="请选择联系类型">
                 <Option value="1">微信</Option>
@@ -72,20 +77,21 @@ function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label="预计签约金额">
-              {getFieldDecorator('contract_price', {
-                initialValue: data.contract_price ? data.contract_price.toString() : null,
+              {getFieldDecorator('recordPrice', {
+                initialValue: data.recordPrice ? data.recordPrice.toString() : null,
               })(<Input placeholder="预计签约金额" />)}
             </FormItem>
             <FormItem {...formItemLayout} label="预计签约时间">
-              {getFieldDecorator('create_time', {
+              {getFieldDecorator('recordTime', {
                 // initialValue: data.create_time ? data.create_time : null,
               })(
                 <DatePicker />
               )}
             </FormItem>
             <FormItem {...formItemLayout} label="联系内容">
-              {getFieldDecorator('contract_content', {
-                initialValue: data.contract_content ? data.contract_content : null,
+              {getFieldDecorator('recordContent', {
+                initialValue: data.recordContent ? data.recordContent : null,
+                rules: [{ required: true }],
               })(
                 <TextArea placeholder="请输入联系内容" autosize={{ minRows: 2, maxRows: 6 }} />
               )}
@@ -94,5 +100,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
     </Modal>
   )
 }
+
+
 
 export default Form.create({})(DispatchModal);

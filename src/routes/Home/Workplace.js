@@ -4,12 +4,22 @@ import { Link } from 'dva/router';
 import { Row, Col, Card, Avatar, Alert } from 'antd';
 import SourceTable from "components/SourceTable";
 import { Bar, TimelineChart } from "components/Charts";
-import Authorized from '../../utils/Authorized';
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
 import styles from './Workplace.less';
+import Authorized from '../../utils/Authorized';
 import { getAuthority, getUserInfo } from '../../utils/authority';
 
-console.log(getUserInfo())
+const authorityName = (function(){
+  switch(getAuthority()) {
+    case 'customer': return '客服人员';
+    case 'seller': return '销售人员';
+    case 'supervisor': return '销售主管';
+  }
+})()
+
+console.log(authorityName);
+
+
 const salesData = [{
   x: '淘宝',
   y: 700,
@@ -140,13 +150,13 @@ export default class Workplace extends PureComponent {
     
     const {
       // user_id: userId,
-      user_name: userName,
-      user_permission: userPermission, // 1：客服人员，2：销售人员， 3： 销售主管
-      user_sign_num: userSignNum,
-      user_rank: userRank,
-      new_source: newSource,
-      person_num: personNum,
-      user_avatar: userAvater,
+      userName,
+      userPermission, // 1：客服人员，2：销售人员， 3： 销售主管
+      userSignNum,
+      userRank,
+      newSource,
+      personNum,
+      userAvatar,
     } = basicInfo;
     const position = ['', '客服人员', '销售人员', '销售主管'];
 
@@ -156,12 +166,12 @@ export default class Workplace extends PureComponent {
         <div className={styles.avatar}>
           <Avatar
             size="large"
-            src={userAvater}
+            src={userAvatar}
           />
         </div>
         <div className={styles.content}>
           <div className={styles.contentTitle}>{userName}，祝你开心每一天！</div>
-          <div>{position[userPermission]} </div>
+          <div>{authorityName} </div>
         </div>
       </div>
     );
@@ -169,30 +179,31 @@ export default class Workplace extends PureComponent {
 
     const extraContent = (
       <div className={styles.extraContent}>
+        <Authorized authority={['seller']}>
+          <div className={styles.statItem}>
+            <p>签约数</p>
+            <p>{userSignNum}</p>
+          </div>
+          <div className={styles.statItem}>
+            <p>团队内排名</p>
+            <p>
+              {userRank}
+              <span> / {personNum}</span>
+            </p>
+          </div>
+        </Authorized>
         <div className={styles.statItem}>
-          <p>签约数</p>
-          <p>{userSignNum}</p>
-        </div>
-        <div className={styles.statItem}>
-          <p>团队内排名</p>
-          <p>
-            {userRank}
-            <span> / {personNum}</span>
-          </p>
-        </div>
-        <div className={styles.statItem}>
-          <p>新资源</p>
+          <p>新增资源</p>
           <p>{newSource}</p>
         </div>
       </div>
     );
 
     return (
-      
       <PageHeaderLayout content={pageHeaderContent} extraContent={extraContent}>
         <Row gutter={24}>
           <Col xl={24} lg={24} md={24} sm={24} xs={24}>
-            <Authorized authority="customer supervisor">
+            <Authorized authority={['seller']}>
               <Card
                 className={styles.projectList}
                 style={{ marginBottom: 24 }}
