@@ -9,7 +9,6 @@ import {
   DatePicker,
   Button,
   Table,
-  message,
   Badge,
 } from 'antd'
 import { connect } from 'dva'
@@ -56,7 +55,7 @@ const columns = [
     key: 'operation',
     fixed: 'right',
     width: 100,
-    render: (val) => <Link to={`/resource/detail/${val}`}>详情</Link>,
+    render: val => <Link to={`/resource/detail/${val}`}>详情</Link>,
   },
 ];
 
@@ -78,7 +77,6 @@ export default class TableList extends PureComponent {
   }
 
   handleSearch = e => {
-    // 设置查找
     e.preventDefault();
     const { form, dispatch } = this.props;
 
@@ -99,70 +97,79 @@ export default class TableList extends PureComponent {
     })
   }
 
-  render() {
-    const { form, followData: { list, pagination }, loading } = this.props;
+  renderSearchForm = () => {
+    const { form } = this.props;
     const { getFieldDecorator } = form;
+
+    return (
+      <div className={Styles.tableListForm}>
+        <Form layout="inline">
+          <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+            <Col md={8} sm={24}>
+              <FormItem label="资源名称">
+                {getFieldDecorator('sourceName')(
+                  <Input placeholder="请输入用户名称" />
+                )}
+              </FormItem>
+            </Col>
+            <Col md={8} sm={24}>
+              <FormItem label="资源状态">
+                {getFieldDecorator('status')(
+                  <Select placeholder="请选择" style={{ width: '100%' }}>
+                    <Option value="0">全部</Option>
+                    <Option value="1">长线用户</Option>
+                    <Option value="2">深度用户</Option>
+                    <Option value="3">潜在用户</Option>
+                    <Option value="4">强烈意向</Option>
+                    <Option value="5">联系不到</Option>
+                  </Select>
+                )}
+              </FormItem>
+            </Col>
+            <Col md={8} sm={24}>
+              <FormItem label="未跟进天数">
+                {getFieldDecorator('schedule_day')(
+                  <Select placeholder="请选择未跟进天数">
+                    <Option value="">全部</Option>
+                    <Option value="0">0</Option>
+                    <Option value="1">1</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                    <Option value="5">5</Option>
+                  </Select>
+                )}
+              </FormItem>        
+            </Col>
+            <Col span="16">
+              <FormItem label="起止日期">
+                {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
+              </FormItem>
+            </Col>
+            <Col md={8} sm={24}>
+              <Button type="primary" style={{marginRight: 20}} onClick={this.handleSearch}>查询</Button>
+              <Button onClick={this.handleFormReset}>重置</Button>
+            </Col>
+          </Row>
+        </Form>
+      </div>
+    )
+  }
+
+  render() {
+    const {  followData: { list, pagination }, loading } = this.props;
 
     return (
       <PageHeaderLayout title="资源跟进记录">
         <Card>
-          <div className={Styles.tableListForm}>
-            <Form layout="inline">
-              <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-                <Col md={8} sm={24}>
-                  <FormItem label="资源名称">
-                    {getFieldDecorator('sourceName')(
-                      <Input placeholder="请输入用户名称" />
-                    )}
-                  </FormItem>
-                </Col>
-                <Col md={8} sm={24}>
-                  <FormItem label="资源状态">
-                    {getFieldDecorator('status')(
-                      <Select placeholder="请选择" style={{ width: '100%' }}>
-                        <Option value="0">全部</Option>
-                        <Option value="1">长线用户</Option>
-                        <Option value="2">深度用户</Option>
-                        <Option value="3">潜在用户</Option>
-                        <Option value="4">强烈意向</Option>
-                        <Option value="5">联系不到</Option>
-                      </Select>
-                    )}
-                  </FormItem>
-                </Col>
-                <Col md={8} sm={24}>
-                  <FormItem label="未跟进天数">
-                    {getFieldDecorator('schedule_day')(
-                      <Select placeholder="请选择未跟进天数">
-                        <Option value="">全部</Option>
-                        <Option value="0">0</Option>
-                        <Option value="1">1</Option>
-                        <Option value="2">2</Option>
-                        <Option value="3">3</Option>
-                        <Option value="4">4</Option>
-                        <Option value="5">5</Option>
-                      </Select>
-                    )}
-                  </FormItem>        
-                </Col>
-                <Col span="16">
-                  <FormItem label="起止日期">
-                    {getFieldDecorator('date')(<RangePicker style={{ width: '100%' }} placeholder={['开始日期', '结束日期']} />)}
-                  </FormItem>
-                </Col>
-                <Col md={8} sm={24}>
-                  <Button type="primary" style={{marginRight: 20}} onClick={this.handleSearch}>查询</Button>
-                  <Button onClick={this.handleFormReset}>重置</Button>
-                </Col>
-              </Row>
-            </Form>
-          </div>
+          {this.renderSearchForm()}
           <Table
             style={{marginTop: 40}}
             columns={columns}
             dataSource={list}
             scroll={{ x:1800 }}
             loading={loading}
+            pagination={pagination}
           />
         </Card>
       </PageHeaderLayout>

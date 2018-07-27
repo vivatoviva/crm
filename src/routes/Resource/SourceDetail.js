@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import { connect } from 'dva'
 import moment from 'moment'
 import {
@@ -25,8 +25,6 @@ import { getAuthority, getUserInfo } from '../../utils/authority';
 const { confirm } = Modal;
 const { Option } = Select;
 const { Description } = DescriptionList;
-
-// 面包屑信息
 const breadcrumbList = [{
   title: '首页',
   href: '/',
@@ -36,7 +34,6 @@ const breadcrumbList = [{
 }, {
   title: '详细信息',
 }];
-
 
 function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
   confirm({
@@ -51,7 +48,7 @@ function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
 }
 
 // 页面头部操作
-const action = ({handleEdit, isEdit, handleReset, handleSign, sourceType, handleRetreat, loadingRetreat }) => {
+const action = ({handleEdit, isEdit, handleReset, sourceType, handleRetreat, loadingRetreat }) => {
   return (
     <div>
       <Button type="primary" onClick={handleEdit}>{isEdit ? '保存' : '编辑'}</Button>
@@ -87,7 +84,7 @@ const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
 const contractMap = ['', '微信', '电话', 'QQ', '上门', '邮箱', '无'];
 
 
-const columns = (editFun, deleteFun) => {
+const getColumns = (editFun, deleteFun) => {
   const columns =  [{
     title: '创建时间',
     dataIndex: 'createTime',
@@ -130,12 +127,11 @@ const columns = (editFun, deleteFun) => {
     render: val => moment(val).format('YYYY-MM-DD'),
   }]
 
-  
   if(getAuthority() !== 'customer' ) {
     columns.push({
       title: '操作',
       dataIndex: 'recordId',
-      key: 'id',
+      key: 'recordId',
       align: 'center',
       render: (val, record) => (
         <>
@@ -148,26 +144,21 @@ const columns = (editFun, deleteFun) => {
       ),
     })
   }
-
-
   return columns;
 };
 
-
-
-  
 // 联系列表
 const RecordList = ({ datasource: data = [], editFun, loading, deleteFun }) => (
-  <Table dataSource={data} columns={columns(editFun, deleteFun)} loading={loading} />
+  <Table dataSource={data} columns={getColumns(editFun, deleteFun)} loading={loading} />
 )
 
 // 签约信息
 const ContractData = ({ data = [] }) => (
   <>
     {
-      data.map(item => (
-        <>
-          <DescriptionList size="large">
+      data.map((item,key) => (
+        <Fragment key={key}>
+          <DescriptionList size="large" key={key}>
             <Description term="合同类型">
               {item.contractType}
             </Description>
@@ -188,30 +179,11 @@ const ContractData = ({ data = [] }) => (
             </Description>
             <Divider />
           </DescriptionList>
-        </>
+        </Fragment>
       ))
     }
   </>
 )
-
-
-function showDeleteConfirm() {
-  confirm({
-    title: 'Are you sure delete this task?',
-    content: 'Some descriptions',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      console.log('OK');
-    },
-    onCancel() {
-      console.log('Cancel');
-    },
-  });
-}
-
-
 
 @connect(({ source, loading }) => ({
   detail: source.detail.detail,
@@ -222,7 +194,8 @@ function showDeleteConfirm() {
   loadingData: loading.effects['source/getDetail'],
   loadingEdit: loading.effects['source/editDetail'],
   loadingRetreat: loading.effects['source/retreatSource'],
-  loadingRecord: loading.effects['source/editRecord', 'source/deleteRecord', 'source/addRecord'],
+  loadingContract: loading.effects['source/addContract'],
+  loadingRecord: loading.effects['source/editRecord'] || loading.effects['source/deleteRecord'] || loading.effects['source/addRecord'],
 }))
 @Form.create()
 export default class NewSource extends PureComponent {
@@ -234,8 +207,6 @@ export default class NewSource extends PureComponent {
     contractModal: false,
     dataSource: [],
   }
-
-  
 
   componentDidMount() {
     const { dispatch, match } = this.props;
@@ -257,9 +228,9 @@ export default class NewSource extends PureComponent {
   }
 
   confirmOk = () => {
-
+    const { isEdit } = this.state;
     this.setState({
-      isEdit: !this.state.isEdit,
+      isEdit: !isEdit,
     })
     const { form, dispatch } = this.props;
     const { validateFieldsAndScroll } = form;
@@ -274,12 +245,13 @@ export default class NewSource extends PureComponent {
         message.error('保存失败')
       }
     })
-
   }
 
   handleEdit = () => {
+    const { isEdit } = this.state;
     const onOk = this.confirmOk;
-    if(this.state.isEdit) {
+    
+    if(isEdit) {
       // 保存按钮
       showConfirm({
         title: '确定保存吗？', 
@@ -290,7 +262,7 @@ export default class NewSource extends PureComponent {
     } else {
       // 编辑按钮
       this.setState({
-        isEdit: !this.state.isEdit,
+        isEdit: !isEdit,
       })
     }
   }
@@ -300,7 +272,7 @@ export default class NewSource extends PureComponent {
     form.resetFields();
   }
 
-  handleEditContract = (values) => {-
+  handleEditContract = (values) => {
     this.setState({
       recordModal: true,
       recordFormData: values,
@@ -308,35 +280,35 @@ export default class NewSource extends PureComponent {
   }
 
   handleAddContract = () => {
+    const { recordModal } = this.state;
     this.setState({
-      recordModal: !this.state.recordModal,
+      recordModal: !recordModal,
     })
   }
 
-  handlerecordModalOk = values => {
+  handleRecordModalOk = values => {
     const { dispatch } = this.props;
     const { recordFormData } = this.state;
-    values = { ...recordFormData, ...values };
+    const formValues = { ...recordFormData, ...values };
 
-    console.log('数据', values);
     this.setState({
       recordModal: false,
       recordFormData: {},
     })
-    if(values.recordId) {
+    if(formValues.recordId) {
       dispatch({
         type: 'source/editRecord',
-        payload: values,
+        payload: formValues,
       })
     } else {
       dispatch({
         type: 'source/addRecord',
-        payload: values,
+        payload: formValues,
       })
     }
   }
 
-  handlerecordModalCancel = () => {
+  handleRecordModalCancel = () => {
     this.setState({
       recordModal: false,
       recordFormData: {},
@@ -362,7 +334,7 @@ export default class NewSource extends PureComponent {
 
   handleCOntractModalCancel = () => {
     this.setState({
-      contractModal: false
+      contractModal: false,
     })
   }
 
@@ -413,7 +385,7 @@ export default class NewSource extends PureComponent {
     const { getFieldDecorator } = form;
     return (
       <Form>
-        <DescriptionList size="large" >
+        <DescriptionList size="large">
           <Description term="资源名称">
             {isEdit ? getFieldDecorator('sourceName', {
                 rules: [{ required: true, message: '请选择用户是否回国' }],
@@ -506,9 +478,11 @@ export default class NewSource extends PureComponent {
               initialValue: data.sourceQq,
             })(
               <Input placeholder="请输入QQ号码" />
-            ) : <a href={`tencent://message/?Menu=yes&uin=${data.sourceQq}`} target="_blank">
-                  {data.sourceQq}
-                </a>
+            ) : (
+              <a href={`tencent://message/?Menu=yes&uin=${data.sourceQq}`} target="_blank" rel="noopener noreferrer">
+                {data.sourceQq}
+              </a>
+            )
             }
           </Description>
           <Description term="微信">
@@ -527,7 +501,9 @@ export default class NewSource extends PureComponent {
   renderSign = ({ data = {}}) => {
     const { form } = this.props;
     const { getFieldDecorator } = form;
-    let { isEdit, dataSource } = this.state;
+    let { isEdit } = this.state;
+    const { dataSource } = this.state;
+
     // 权限拦截
     if(getAuthority() === 'customer') isEdit = false;
     
@@ -588,17 +564,15 @@ export default class NewSource extends PureComponent {
               })(
                 <Input placeholder="请输入签约人地址" />
               ): data.signAddress}
-
           </Description>
         </DescriptionList>
       </Form>
   )}
 
   render() {
-    const { form, detail, sign, contract, loadingData, contactData, loadingEdit, loadingRecord, loadingRetreat } = this.props;
+    const { detail, sign, contract, loadingData, contactData, loadingEdit, loadingRecord, loadingRetreat, loadingContract } = this.props;
     const { isEdit, recordFormData } = this.state;
     const { recordModal, contractModal } = this.state;
-
 
     return (
       <PageHeaderLayout
@@ -629,7 +603,7 @@ export default class NewSource extends PureComponent {
         <Card
           title="合同信息"
           style={{marginTop: 20}}
-          loading={loadingData}
+          loading={loadingData || loadingContract}
           extra={(
             <Authorized authority={['seller', 'supervisor']}>
               <a onClick={this.handleContractModal}>新建合同信息</a>
@@ -649,8 +623,8 @@ export default class NewSource extends PureComponent {
           )}
         >
           <RecordList loading={loadingRecord} datasource={contactData} editFun={this.handleEditContract} deleteFun={this.handleDeleteRecord} />
-          <ContractModal  visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleCOntractModalCancel} />
-          <RecordModal data={recordFormData} visible={recordModal} handleOk={this.handlerecordModalOk} handleCancel={this.handlerecordModalCancel} />
+          <ContractModal visible={contractModal} handleOk={this.handleContractModalOk} handleCancel={this.handleCOntractModalCancel} />
+          <RecordModal data={recordFormData} visible={recordModal} handleOk={this.handleRecordModalOk} handleCancel={this.handleRecordModalCancel} />
         </Card>
       </PageHeaderLayout>
     )

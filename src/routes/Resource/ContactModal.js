@@ -1,20 +1,13 @@
 import React from 'react'
-import moment from 'moment';
 import {
   Modal,
   Form,
   Button,
   Input,
-  Row,
-  Col,
-  InputNumber,
-  Select,
   DatePicker,
 } from "antd"
 
 const FormItem = Form.Item;
-const { TextArea } = Input;
-const { Option } = Select;
 const formItemLayout = {
   labelCol: {
     xs: { span: 24 },
@@ -27,15 +20,15 @@ const formItemLayout = {
   },
 };
 
-
 function DispatchModal({ handleOk, handleCancel, visible, form }) {
   const { getFieldDecorator } = form;
+  const destroyOnClose = true;
   const onOk = () => {
     form.validateFields((err, values) => {
       if(err) return;
-      values.contractDate = values.contractDate.unix() * 1000;
-      console.log('价值', values);
-      handleOk(values);
+      const formValues = values;
+      formValues.contractDate = formValues.contractDate.unix() * 1000;
+      handleOk(formValues);
     })
   }
 
@@ -45,7 +38,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form }) {
       title="新增合同信息"
       onOk={onOk}
       onCancel={handleCancel}
-      destroyOnClose={true}
+      destroyOnClose={destroyOnClose}
       footer={[
         <Button key="back" onClick={handleCancel}>取消</Button>,
         <Button key="submit" type="primary" loading={false} onClick={onOk}>

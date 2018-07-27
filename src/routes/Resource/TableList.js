@@ -27,13 +27,11 @@ const FormItem = Form.Item;
 const { Option } = Select;
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
-const confirm = Modal.confirm;
-
+const { confirm } = Modal;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-
 
 @connect(({ loading, source }) => ({
   allData: source.allData,
@@ -46,7 +44,6 @@ export default class TableList extends PureComponent {
     expandForm: false,
     selectedRows: [],
     formValues: {},
-    deleteVisible: false,
     radioType: 'noDispatch',
   };
 
@@ -55,6 +52,20 @@ export default class TableList extends PureComponent {
     dispatch({
       type: 'source/fetchList',
     })
+  }
+
+  getDefaultValue = () => {
+    switch(getAuthority()) {
+      case 'seller': {
+        this.setState({
+          radioType: 'alreadyDispatch',
+        })
+        return 'alreadyDispatch';
+      }
+      default : {
+        return 'noDispatch';
+      }
+    }
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -177,38 +188,24 @@ export default class TableList extends PureComponent {
     })
   }
 
-  
- showDeleteConfirm = () => {
-  const deleteFun = this.handleDelete;
-  confirm({
-    title: '你确定删除这些资源吗?',
-    okText: '确定',
-    okType: 'danger',
-    cancelText: '取消',
-    onOk: deleteFun,
-    onCancel() {
-      console.log('Cancel');
-    },
-  });
-}
-
-getDefaultValue = () => {
-  switch(getAuthority()) {
-    case 'seller': {
-      this.setState({
-        radioType: 'alreadyDispatch',
-      })
-      return 'alreadyDispatch';
-    }
-    default : {
-      return 'noDispatch';
-    }
+  showDeleteConfirm = () => {
+    const deleteFun = this.handleDelete;
+    confirm({
+      title: '你确定删除这些资源吗?',
+      okText: '确定',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: deleteFun,
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
   }
-}
 
-renderSimpleForm() {
+  renderSimpleForm() {
     const { form } = this.props;
     const { getFieldDecorator } = form;
+    
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
@@ -334,6 +331,23 @@ renderSimpleForm() {
     return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
   }
 
+  renderRadio = () => (
+    <div style={{ float: 'right' }}>
+      <RadioGroup defaultValue={this.getDefaultValue()} onChange={this.handleRadio}>
+        <Authorized authority={[ 'customer', 'supervisor']}>
+          <RadioButton value="noDispatch">未分派</RadioButton>
+        </Authorized>
+        <Authorized authority={[ 'seller', 'supervisor']}>
+          <RadioButton value="alreadyDispatch">已分派</RadioButton>
+          <RadioButton value="alreadySign">已签约</RadioButton>
+        </Authorized>
+        <Authorized authority={['customer', 'supervisor']}>
+          <RadioButton value="delete">被退回</RadioButton>
+        </Authorized>
+      </RadioGroup>                
+    </div>
+  )
+
   render() {
     const {
       allData,
@@ -341,7 +355,7 @@ renderSimpleForm() {
     } = this.props;
     const formatData = { ...allData };
     const multipleSelection = true;
-    const { selectedRows, visible, deleteVisible, radioType } = this.state;
+    const { selectedRows, visible, radioType } = this.state;
     return (
       <PageHeaderLayout title="">
         <Card bordered={false}>
@@ -358,26 +372,11 @@ renderSimpleForm() {
                   {
                     radioType === 'noDispatch' ? <Button type="primary" onClick={this.handleDispatch}><Icon type="solution" /> 分派</Button> : ''
                   }
-                  
                   <Button type="danger" onClick={this.showDeleteConfirm}><Icon type="delete" /> 删除</Button>
                 </Fragment>
               )}
-              <div style={{ float: 'right' }}>
-                <RadioGroup defaultValue={this.getDefaultValue()} onChange={this.handleRadio}>
-                  <Authorized authority={[ 'customer', 'supervisor']}>
-                    <RadioButton value="noDispatch">未分派</RadioButton>
-                  </Authorized>
-                  <Authorized authority={[ 'seller', 'supervisor']}>
-                    <RadioButton value="alreadyDispatch">已分派</RadioButton>
-                    <RadioButton value="alreadySign">已签约</RadioButton>
-                  </Authorized>
-                  <Authorized authority={['customer', 'supervisor']}>
-                    <RadioButton value="delete">被退回</RadioButton>
-                  </Authorized>
-                </RadioGroup>                
-              </div>
+              {this.renderRadio()}
             </div>
-
             <SourceTable
               selectedRows={selectedRows}
               loading={loading}

@@ -21,9 +21,7 @@ import Styles from './TableList.less';
 const FormItem = Form.Item;
 const { Option }  = Select;
 const permissionMap = ['', '客服人员', '销售人员', '销售主管'];
-
-const columns = ({ editFun, deleteFun }) => {
-  return [
+const columns = ({ editFun, deleteFun }) => ([
     { title: '员工编号', dataIndex: 'userId', key: 'userId' },
     { title: '员工姓名', dataIndex: 'userName', key: 'userName', align: 'center' },
     { title: '权限', dataIndex: 'userPermission', key: 'userPermission', align: 'center', render: val => permissionMap[val] },
@@ -33,7 +31,7 @@ const columns = ({ editFun, deleteFun }) => {
     {
       title: '操作',
       dataIndex: 'userId',
-      key: 'userId',
+      key: 'user_Id',
       render: (value, recods) => (
         <>
           <a onClick={() => editFun(recods)}>编辑</a>
@@ -44,9 +42,7 @@ const columns = ({ editFun, deleteFun }) => {
         </>
       ),
     },
-  ]
-}
-
+  ])
 
 const formItemLayout = {
   labelCol: {
@@ -65,7 +61,6 @@ const formItemLayout = {
 }))
 @Form.create()
 export default class TableList extends PureComponent {
-  
 
   state = {
     addVisible: false,
@@ -78,7 +73,6 @@ export default class TableList extends PureComponent {
       type: 'employee/fetchList',
     })
   }
-
 
   handleEdit = values => {
     this.setState({
@@ -96,15 +90,16 @@ export default class TableList extends PureComponent {
     e.preventDefault();
     const { form, dispatch } = this.props;
     const { pagination } = this.state;
+    
     form.validateFields((err, fieldValues) => {
-      const { user_name, user_id } = fieldValues;
+      const { userName, userId } = fieldValues;
       dispatch({
         type: 'employee/fetchList',
         payload: {
           ...fieldValues,
           ...pagination,
-          userName: user_name,
-          userId: user_id,
+          userName,
+          userId,
         },
       })
     })
@@ -112,7 +107,6 @@ export default class TableList extends PureComponent {
 
   handleFormReset = () => {
     const { form, dispatch } = this.props;
-
     form.resetFields();
     dispatch({
       type: 'employee/fetchList',
@@ -124,7 +118,6 @@ export default class TableList extends PureComponent {
     this.setState({
       addVisible: !addVisible,
     })
-
   }
 
   handleAddOk = () => {
@@ -133,17 +126,18 @@ export default class TableList extends PureComponent {
 
     form.validateFields((err, values) => {
       if(err) return;
+      const formValues = values;
       if(userId) {
-        values.userId = userId;
+        formValues.userId = userId;
       }
       dispatch({
         type: 'employee/operate',
         payload: {
-          formValues: values,
+          formValues,
           searchValues: {
             ...pagination,
-            userId: values.user_id,
-            userName: values.user_name,
+            userId,
+            userName: values.userName,
           },
         },
       })
@@ -175,11 +169,11 @@ export default class TableList extends PureComponent {
     });
   }
 
-
   renderAddModal = () => {
     const { addVisible, employeeData: data } = this.state;
     const { form } = this.props;
     const { getFieldDecorator } = form; 
+
     return (
       <Modal
         title="新增员工"
@@ -194,12 +188,9 @@ export default class TableList extends PureComponent {
               getFieldDecorator('userName', {
                 rules: [{ required: true, message: '员工姓名' }],
                 initialValue: data.userName,
-              })(
-                <Input placeholder="请输入员工姓名" />
-              )
+              })(<Input placeholder="请输入员工姓名" />)
             }
           </FormItem>
-
           <FormItem label="员工权限" {...formItemLayout}>
             {
               getFieldDecorator('userPermission', {
@@ -219,9 +210,7 @@ export default class TableList extends PureComponent {
               getFieldDecorator('userPhone', {
                 rules: [{ required: true, message: '请输入员工联系电话' }],
                 initialValue: data.userPhone,
-              })(
-                <Input placeholder="请输入员工联系电话" />
-              )
+              })(<Input placeholder="请输入员工联系电话" />)
             }
           </FormItem>
         </Form>
@@ -229,46 +218,54 @@ export default class TableList extends PureComponent {
     )
   }
 
-  render() {
-    const { form, employeeData, loading } = this.props;
+  renderFormSearch = () => {
+    const { form } = this.props;
     const { getFieldDecorator } = form;
+
+    return (
+      <div className={Styles.tableListForm}>
+        <Form
+          layout="inline"
+        >
+          <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+            <Col span={8}>
+              <FormItem label="员工姓名">
+                {getFieldDecorator('userName')(
+                  <Input placeholder="请输入用户名称" />
+                )}
+              </FormItem>
+            </Col>
+            <Col span={8}>
+              <FormItem label="员工编号">
+                {getFieldDecorator('userId')(
+                  <InputNumber style={{width: '100%'}} min={1} />
+                )}
+              </FormItem>
+            </Col>
+            <Col span="8">
+              <Button
+                type="primary"
+                style={{marginRight: 20}}
+                onClick={this.handleSearch}
+              >
+                查询
+              </Button>
+              <Button onClick={this.handleFormReset}>重置</Button>
+            </Col>
+          </Row>
+        </Form>
+      </div>
+    )
+  }
+
+  render() {
+    const { employeeData, loading } = this.props;
     return (
       <PageHeaderLayout title="您的权限等级为： 销售主管">
         <Card>
-          <div className={Styles.tableListForm}>
-            <Form
-              layout="inline"
-            >
-              <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-                <Col md={8} sm={24}>
-                  <FormItem label="员工姓名">
-                    {getFieldDecorator('user_name')(
-                      <Input placeholder="请输入用户名称" />
-                    )}
-                  </FormItem>
-                </Col>
-                <Col md={8} sm={24}>
-                  <FormItem label="员工编号">
-                    {getFieldDecorator('user_id')(
-                      <InputNumber style={{width: '100%'}} min={1} />
-                    )}
-                  </FormItem>
-                </Col>
-                <Col md="8" sm="24">
-                  <Button
-                    type="primary"
-                    style={{marginRight: 20}}
-                    onClick={this.handleSearch}
-                  >
-                    查询
-                  </Button>
-                  <Button onClick={this.handleFormReset}>重置</Button>
-                </Col>
-              </Row>
-            </Form>
-          </div>
+          {this.renderFormSearch()}
+          {this.renderAddModal()}
           <Button type="primary" onClick={this.handleAdd}><Icon type="user-add" />新增</Button>
-          <this.renderAddModal />
           <Table
             loading={loading}
             style={{marginTop: 40}}

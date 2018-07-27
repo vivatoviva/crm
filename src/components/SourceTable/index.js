@@ -17,13 +17,13 @@ const channel = ['', '淘宝', '网站', '校园大使', '市场', '老带薪']
 const columns = [{
   title: '创建时间',
   dataIndex: 'createTime',
-  key: 'name',
+  key: 'createTime',
   render: val => moment(val).format('YYYY-MM-DD'),
 }, {
   title: '资源名称',
   align: 'center',
   dataIndex: 'sourceName',
-  key: 'age',
+  key: 'source',
 }, {
   title: '未来计划',
   dataIndex: 'sourcePlanning',
@@ -61,17 +61,17 @@ const columns = [{
 }, {
   title: '未跟进天数',
   dataIndex: 'scheduleDay',
-  key: 'schedule_day',
+  key: 'scheduleDay',
   align: 'center',
 }, {
   title: '对接人',
   dataIndex: 'person',
   key: 'person',
-  render: text => text ? text : '暂无',
+  render: text => text || "暂无",
 }, {
   title: '操作',
-  dataIndex: 'source_id',
-  key: 'id',
+  dataIndex: 'sourceId',
+  key: 'sourceId',
   render: text => (<Link to={`/resource/detail/${text}`}>详情</Link>),
 }];
 
@@ -93,6 +93,6 @@ export default class SourceTable extends PureComponent {
   
   render() {
     const { multipleSelection } = this.props;
-    return multipleSelection ? <this.renderStandardTable /> : <this.renderTable />;
+    return multipleSelection ? this.renderStandardTable() : this.renderTable();
   }
 }

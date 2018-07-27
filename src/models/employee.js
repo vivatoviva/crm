@@ -29,6 +29,7 @@ export default {
     },
     *delete({ payload }, { call, put }) {
       const response = yield call(deleteEmployee, payload);
+      
       yield put({
         type: 'deleteData',
         payload,

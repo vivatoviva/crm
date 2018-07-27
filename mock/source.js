@@ -27,6 +27,7 @@ const basic = {
   sourceQq: '1461304646',
   sourceWx: '1461304646',
   type: '1',
+  'key|1-5000': 1,
 }
 // 最近资源
 const recentData = Mock.mock({
@@ -68,6 +69,7 @@ const detailData = Mock.mock({
       contractConsultant: 'genluo',
       contractAmount: 100,
       contractDate: 1280977330000,
+      'key|1-5000': 1,
     }],
   },
 })
@@ -85,6 +87,7 @@ const contactData = Mock.mock({
       recordPrice: '100',
       recordTime: 1280977330000,
       createTime: 1280977330000,
+      'key|1-5000': 1,
     }],
     pagination: {
       current: 1,
@@ -105,6 +108,7 @@ const followData = Mock.mock({
       person: 'genluo',
       'secholdDay|1-10': 1,
       'contractContent|1-3': [Random.title()],
+      'key|1-5000': 1,
     }],
     pagination: {
       current: 1,

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Link } from 'dva/router';
-import { Row, Col, Card, Avatar, Alert } from 'antd';
+import { Row, Col, Card, Avatar } from 'antd';
 import SourceTable from "components/SourceTable";
 import { Bar, TimelineChart } from "components/Charts";
 import PageHeaderLayout from '../../layouts/PageHeaderLayout';
@@ -129,8 +129,17 @@ export default class Workplace extends PureComponent {
     })
   }
 
+  getAuthorityZh = () => {
+    switch(getAuthority()) {
+      case 'customer': return '客服人员';
+      case 'seller': return '销售人员';
+      case 'supervisor': return '销售主管';
+      default : return '客服人员';
+    }
+  }
 
   render() {
+
     const {
       recentData: { list },
       userInfo: { basicInfo },
@@ -138,17 +147,13 @@ export default class Workplace extends PureComponent {
     } = this.props;
     
     const {
-      // user_id: userId,
       userName,
-      userPermission, // 1：客服人员，2：销售人员， 3： 销售主管
       userSignNum,
       userRank,
       newSource,
       personNum,
       userAvatar,
     } = basicInfo;
-    const position = ['', '客服人员', '销售人员', '销售主管'];
-
 
     const pageHeaderContent = (
       <div className={styles.pageHeaderContent}>
@@ -160,18 +165,11 @@ export default class Workplace extends PureComponent {
         </div>
         <div className={styles.content}>
           <div className={styles.contentTitle}>{userName}，祝你开心每一天！</div>
-          <div>{(function(){
-              switch(getAuthority()) {
-                case 'customer': return '客服人员';
-                case 'seller': return '销售人员';
-                case 'supervisor': return '销售主管';
-              }
-            })()} </div>
+          <div>{this.getAuthorityZh()} </div>
         </div>
       </div>
     );
     
-
     const extraContent = (
       <div className={styles.extraContent}>
         <Authorized authority={['seller']}>
@@ -210,6 +208,7 @@ export default class Workplace extends PureComponent {
                 <SourceTable data={{ list }} styles={{ padding: 0 }} multipleSelection={false} />
               </Card>
             </Authorized>
+            {/* 来访渠道 */}
             <Card style={{ marginBottom: 24, width: '400' }} loading={rencentLoading}>
               <Row gutter={24}>
                 <Col span={24}>
@@ -217,7 +216,7 @@ export default class Workplace extends PureComponent {
                 </Col>
               </Row>
             </Card>
-
+            {/* 签约数据 */}
             <Card
               style={{ marginBottom: 24, width: '100%' }}
               loading={rencentLoading}
@@ -235,7 +234,6 @@ export default class Workplace extends PureComponent {
           </Col>
         </Row>
       </PageHeaderLayout>
-
     );
   }
 }

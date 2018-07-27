@@ -138,7 +138,7 @@ export default {
         payload,
       })
     },
-    *addSource({ payload: { values, comeBack} }, { call, put }) {
+    *addSource({ payload: { values, comeBack} }, { call }) {
       const response = yield call(addSourceFun, values);
       comeBack(response.data.sourceId);
     },

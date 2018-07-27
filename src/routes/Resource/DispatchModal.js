@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react'
+import React from 'react'
 import {
   Modal,
   Form,
@@ -9,15 +9,12 @@ import {
   InputNumber,
 } from "antd"
 
-
 const FormItem = Form.Item;
 
-
 function DispatchModal({ handleOk, handleCancel, visible, form }) {
-  
-  
+
   const getEmployeeName = id => {
-    return 'genluo'
+    return `genluo${id}`;
   }
   const handleInputChange = value => {
     const name = getEmployeeName(value);
