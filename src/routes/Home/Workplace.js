@@ -9,17 +9,6 @@ import styles from './Workplace.less';
 import Authorized from '../../utils/Authorized';
 import { getAuthority, getUserInfo } from '../../utils/authority';
 
-const authorityName = (function(){
-  switch(getAuthority()) {
-    case 'customer': return '客服人员';
-    case 'seller': return '销售人员';
-    case 'supervisor': return '销售主管';
-  }
-})()
-
-console.log(authorityName);
-
-
 const salesData = [{
   x: '淘宝',
   y: 700,
@@ -171,7 +160,13 @@ export default class Workplace extends PureComponent {
         </div>
         <div className={styles.content}>
           <div className={styles.contentTitle}>{userName}，祝你开心每一天！</div>
-          <div>{authorityName} </div>
+          <div>{(function(){
+              switch(getAuthority()) {
+                case 'customer': return '客服人员';
+                case 'seller': return '销售人员';
+                case 'supervisor': return '销售主管';
+              }
+            })()} </div>
         </div>
       </div>
     );
@@ -215,7 +210,7 @@ export default class Workplace extends PureComponent {
                 <SourceTable data={{ list }} styles={{ padding: 0 }} multipleSelection={false} />
               </Card>
             </Authorized>
-            <Card style={{ marginBottom: 24, width: '400' }}>
+            <Card style={{ marginBottom: 24, width: '400' }} loading={rencentLoading}>
               <Row gutter={24}>
                 <Col span={24}>
                   <Bar height={300} title="来访渠道" data={salesData} />
@@ -225,6 +220,7 @@ export default class Workplace extends PureComponent {
 
             <Card
               style={{ marginBottom: 24, width: '100%' }}
+              loading={rencentLoading}
             >
               <Row gutter={24}>
                 <Col span={24}>
@@ -235,7 +231,6 @@ export default class Workplace extends PureComponent {
                   />
                 </Col>
               </Row>
-
             </Card>
           </Col>
         </Row>

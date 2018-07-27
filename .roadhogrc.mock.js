@@ -25,10 +25,10 @@ const proxy = {
       },
     },
     $body: {
-      name: 'Serati Ma',
-      avatar: 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png',
+      name: 'genluo',
+      avatar: 'https://avatars1.githubusercontent.com/u/26970959?s=460&v=4',
       userid: '00000001',
-      notifyCount: 12,
+      notifyCount: 4,
     },
   },
   // GET POST 可省略

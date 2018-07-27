@@ -22,16 +22,6 @@ import styles from './TableList.less';
 import Authorized from '../../utils/Authorized';
 import { getAuthority, getUserInfo } from '../../utils/authority';
 
-const authorityName = (function(){
-  switch(getAuthority()) {
-    case 'customer': return '客服人员';
-    case 'seller': return '销售人员';
-    case 'supervisor': return '销售主管';
-  }
-})()
-
-
-
 const { RangePicker } = DatePicker;
 const FormItem = Form.Item;
 const { Option } = Select;
@@ -43,34 +33,6 @@ const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-// 过滤不能删除的记录
-// const initList = data => {
-//   const formatData = [];
-//   for(const item of data) {
-//     formatData.push({
-//       ...item,
-//       disabled: !!item.person,
-//     })
-//   }
-//   return formatData;
-// }
-
-
-function showDeleteConfirm() {
-  confirm({
-    title: 'Are you sure delete this task?',
-    content: 'Some descriptions',
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    onOk() {
-      console.log('OK');
-    },
-    onCancel() {
-      console.log('Cancel');
-    },
-  });
-}
 
 
 @connect(({ loading, source }) => ({
@@ -231,8 +193,8 @@ export default class TableList extends PureComponent {
 }
 
 getDefaultValue = () => {
-  switch(authorityName) {
-    case '销售人员': {
+  switch(getAuthority()) {
+    case 'seller': {
       this.setState({
         radioType: 'alreadyDispatch',
       })
@@ -391,7 +353,6 @@ renderSimpleForm() {
                   新建
                 </Button>
               </Authorized>
-
               {selectedRows.length > 0 && (
                 <Fragment>
                   {
@@ -413,7 +374,6 @@ renderSimpleForm() {
                   <Authorized authority={['customer', 'supervisor']}>
                     <RadioButton value="delete">被退回</RadioButton>
                   </Authorized>
-
                 </RadioGroup>                
               </div>
             </div>

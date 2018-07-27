@@ -51,7 +51,7 @@ function showConfirm({ title, onOk, onCancel, content, okType = 'primary' }) {
 }
 
 // 页面头部操作
-const action = ({handleEdit, isEdit, handleReset, handleSign, sourceType, handleRetreat }) => {
+const action = ({handleEdit, isEdit, handleReset, handleSign, sourceType, handleRetreat, loadingRetreat }) => {
   return (
     <div>
       <Button type="primary" onClick={handleEdit}>{isEdit ? '保存' : '编辑'}</Button>
@@ -65,6 +65,7 @@ const action = ({handleEdit, isEdit, handleReset, handleSign, sourceType, handle
           )
         } */}
         <Button
+          loading={loadingRetreat} 
           type="danger"
           disabled={sourceType == '4' || sourceType == '3'}
           onClick={showConfirm.bind(null, {
@@ -220,6 +221,7 @@ function showDeleteConfirm() {
   loading: loading.models.rule,
   loadingData: loading.effects['source/getDetail'],
   loadingEdit: loading.effects['source/editDetail'],
+  loadingRetreat: loading.effects['source/retreatSource'],
   loadingRecord: loading.effects['source/editRecord', 'source/deleteRecord', 'source/addRecord'],
 }))
 @Form.create()
@@ -593,10 +595,11 @@ export default class NewSource extends PureComponent {
   )}
 
   render() {
-    const { form, detail, sign, contract, loadingData, contactData, loadingEdit, loadingRecord } = this.props;
+    const { form, detail, sign, contract, loadingData, contactData, loadingEdit, loadingRecord, loadingRetreat } = this.props;
     const { isEdit, recordFormData } = this.state;
     const { recordModal, contractModal } = this.state;
-    console.log(contract);
+
+
     return (
       <PageHeaderLayout
         title="详细信息"
@@ -608,6 +611,7 @@ export default class NewSource extends PureComponent {
           handleSign: this.handleSign,
           sourceType: detail.type,
           handleRetreat: this.handleRetreat,
+          loadingRetreat,
         })}
         loading={loadingData}
       >

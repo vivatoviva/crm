@@ -70,7 +70,7 @@ export default class GlobalHeader extends PureComponent {
     } = this.props;
     const menu = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={onMenuClick}>
-        <Menu.Item disabled>
+        {/* <Menu.Item disabled>
           <Icon type="user" />个人中心
         </Menu.Item>
         <Menu.Item disabled>
@@ -79,7 +79,7 @@ export default class GlobalHeader extends PureComponent {
         <Menu.Item key="triggerError">
           <Icon type="close-circle" />触发报错
         </Menu.Item>
-        <Menu.Divider />
+        <Menu.Divider /> */}
         <Menu.Item key="logout">
           <Icon type="logout" />退出登录
         </Menu.Item>
@@ -100,7 +100,7 @@ export default class GlobalHeader extends PureComponent {
           onClick={this.toggle}
         />
         <div className={styles.right}>
-          <HeaderSearch
+          {/* <HeaderSearch
             className={`${styles.action} ${styles.search}`}
             placeholder="站内搜索"
             dataSource={['搜索提示一', '搜索提示二', '搜索提示三']}
@@ -110,8 +110,8 @@ export default class GlobalHeader extends PureComponent {
             onPressEnter={value => {
               console.log('enter', value); // eslint-disable-line
             }}
-          />
-          <Tooltip title="使用文档">
+          /> */}
+          {/* <Tooltip title="使用文档">
             <a
               target="_blank"
               href="http://pro.ant.design/docs/getting-started"
@@ -120,7 +120,7 @@ export default class GlobalHeader extends PureComponent {
             >
               <Icon type="question-circle-o" />
             </a>
-          </Tooltip>
+          </Tooltip> */}
           <NoticeIcon
             className={styles.action}
             count={currentUser.notifyCount}

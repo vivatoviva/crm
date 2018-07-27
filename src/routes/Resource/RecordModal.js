@@ -83,7 +83,7 @@ function DispatchModal({ handleOk, handleCancel, visible, form, data }) {
             </FormItem>
             <FormItem {...formItemLayout} label="预计签约时间">
               {getFieldDecorator('recordTime', {
-                // initialValue: data.create_time ? data.create_time : null,
+                initialValue: data.recordTime ? moment(data.recordTime) : moment(),
               })(
                 <DatePicker />
               )}
